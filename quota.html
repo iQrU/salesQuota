@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quota Setting</title>
+
+  <style>
+    :root {
+      --primary-light: #8abdff;
+      --primary: #6d5dfc;
+      --primary-dark: #5b0eeb;
+      --white: #FFFFFF;
+      --greyLight-1: #E4EBF5;
+      --greyLight-2: #c8d0e7;
+      --greyLight-3: #bec8e4;
+      --greyDark: #9baacf;
+    }
+
+    span {
+      margin: 2px 5px;
+      padding: 2px 5px;
+      border: 0.35rem solid #95aeff;
+      border-radius: 18px;
+    }
+
+    span:hover {
+      color: purple;
+      border-color: #ba95ff;
+    }
+
+    span:active {
+      color: white;
+      background-color: #ba95ff;
+      border-color: #ba95ff;
+    }
+
+    .selected {
+      color: white;
+      background-color: #ba95ff;
+      border-color: #ba95ff;
+    }
+
+    .switch {
+      position: absolute;
+      top: 50px;
+      left: 15px;
+      width: 4rem;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .switch label {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 2rem;
+      box-shadow: 0.3rem 0.3rem 0.6rem var(--greyLight-2), -0.2rem -0.2rem 0.5rem var(--white);
+      background: rgba(255, 255, 255, 0);
+      position: relative;
+      cursor: pointer;
+      border-radius: 1.1rem;
+    }
+
+    .switch label::after {
+      content: "";
+      position: absolute;
+      left: 0.27rem;
+      width: 1.4rem;
+      height: 1.4rem;
+      border-radius: 50%;
+      background: var(--greyDark);
+      transition: all 0.4s ease;
+    }
+
+    .switch label::before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(330deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    .switch input:checked~label::before {
+      opacity: 1;
+    }
+
+    .switch input:checked~label::after {
+      left: 57%;
+      background: var(--greyLight-1);
+    }
+
+    .terr {
+      border: none;
+      border-radius: 13px;
+      background-color: #ba95ff7a;
+    }
+
+    #tag {
+      margin: 3px;
+      padding: 0;
+      font-size: 0.8rem;
+      font-style: italic;
+      color: blue;
+    }
+
+    #terrBox {
+      position: absolute;
+      top: 15px;
+      left: 350px;
+      border: #95aeff 1px solid;
+    }
+
+    rect {
+      opacity: 70%;
+    }
+
+    .sum {
+      font-style: italic;
+      fill: purple;
+    }
+  </style>
+</head>
+
+<body>
+  <p id="menuBar"><span>CORE2</span><span>CORE1</span><span>CORE3</span><span>CORE4</span></p>
+  <div class="switch">
+    <p id="tag">volume(million)</p>
+    <input id="switch" type="checkbox">
+    <label for="switch"></label>
+  </div>
+</body>
+
+<script>
+  const selector = document.getElementsByTagName("span");
+  selector[0].setAttribute("class", "selected");
+  const toggler = document.getElementById("switch");
+
+  const xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const dataArray = processCsv(this.responseText);
+      let dist = selector[0].innerHTML;
+      let data = summerizeData(dataArray, "Dist", "Terr", "제품")[dist];
+      const teamProduct = {
+        CORE2: ["ELIQUIS", "CIBINQO", "XELJANZ", "XELJANZ 10", "ENBREL"],
+        CORE1: ["BAVENCIO", "BESPONSA", "CRESEMBA", "ERAXIS", "IBRANCE", "INLYTA", "LORVIQUA", "PRECEDEX", "SUTENE", "TYGACIL", "VFEND", "VIZIMPRO", "XALKORI", "ZYVOX"],
+        CORE3: ["PREVENAR13(A)", "PREVENAR13(P)"],
+        CORE4: ["BAVENCIO", "BESPONSA", "CRESEMBA", "ELIQUIS", "ENBREL", "ERAXIS", "IBRANCE", "INLYTA", "PRECEDEX", "SUTENE", "TYGACIL", "VFEND", "VIZIMPRO", "XALKORI", "XELJANZ", "ZYVOX"]
+      };
+      const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
+      const width = document.documentElement.clientWidth;
+      makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+
+      const menuBar = document.getElementById("menuBar");
+      const terrBox = document.createElement("div");
+      terrBox.setAttribute("id", "terrBox");
+      menuBar.appendChild(terrBox);
+      for (let i = 0; i < Object.keys(data).length; i++) {
+        const terr = document.createElement("span");
+        terr.setAttribute("class", "terr");
+        terr.innerHTML = Object.keys(data)[i].substring(4, 8);
+        terrBox.appendChild(terr);
+      }
+
+      for (let i = 0; i < selector.length; i++) {
+        selector[i].addEventListener("click", function () {
+          for (let j = 0; j < selector.length; j++) {
+            selector[j].removeAttribute("class", "selected");
+          }
+          selector[i].setAttribute("class", "selected");
+          const svg = document.getElementsByTagName("svg");
+          svg[0].remove();
+          dist = selector[i].innerText;
+          data = summerizeData(dataArray, "Dist", "Terr", "제품")[dist];
+          makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+
+          const previousDiv = document.getElementById("terrBox");
+          menuBar.removeChild(previousDiv);
+          const terrBox = document.createElement("div");
+          terrBox.setAttribute("id", "terrBox");
+          menuBar.appendChild(terrBox);
+          for (let j = 0; j < Object.keys(data).length; j++) {
+            const terr = document.createElement("span");
+            terr.setAttribute("class", "terr");
+            terr.innerHTML = Object.keys(data)[j].substring(4, 8);
+            terrBox.appendChild(terr);
+          }
+        });
+      }
+
+      toggler.onchange = function () {
+        const svg = document.getElementsByTagName("svg");
+        svg[0].remove();
+        const tag = document.getElementById("tag");
+        toggler.checked ? tag.innerHTML = "ratio" : tag.innerHTML = "volume(million)";
+        makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+      }
+    }
+  }
+  xhr.open("GET", "/data/quotaSetting2023.csv", false);
+  xhr.send();
+
+  function processCsv(csvText) {
+    let dataArray = [];
+    const lines = csvText.split(/\r\n|\r|\n/);
+    function replacer(matchString) {
+      return matchString.replace(/[" ,]/g, "");
+    }
+    for (let i = 0; i < lines.length; i++) {
+      lines[i] = lines[i].replace(/"\s?\d+[0-9, ]*"/g, replacer).replace(/,\s?-/, ",0");
+      const line = lines[i].split(",");
+      dataArray.push(line);
+    }
+    return dataArray;
+  }
+
+  function summerizeData(dataArray, criteria1, criteria2, criteria3) {
+    let summeryObj = {};
+    const header = dataArray[23];
+    const idx1 = header.indexOf(criteria1);
+    const idx2 = header.indexOf(criteria2);
+    const idx3 = header.indexOf(criteria3);
+    for (let i = 24; i < dataArray.length; i++) {
+      const item1 = dataArray[i][idx1];
+      const item2 = dataArray[i][idx2];
+      const item3 = dataArray[i][idx3];
+      if (summeryObj[item1]) {
+        if (criteria2) {
+          if (summeryObj[item1][item2]) {
+            if (criteria3) {
+              if (summeryObj[item1][item2][item3]) {
+                summeryObj[item1][item2][item3] = dataArray[i].slice(6).map((x, y) => x * 1 + summeryObj[item1][item2][item3][y]);
+              } else {
+                summeryObj[item1][item2][item3] = dataArray[i].slice(6).map(x => x * 1);
+              }
+            } else {
+              summeryObj[item1][item2] = dataArray[i].slice(6).map((x, y) => x * 1 + summeryObj[item1][item2][y]);
+            }
+          } else if (criteria3) {
+            summeryObj[item1][item2] = {};
+            summeryObj[item1][item2][item3] = dataArray[i].slice(6).map(x => x * 1);
+          } else {
+            summeryObj[item1][item2] = dataArray[i].slice(6).map(x => x * 1);
+          }
+        } else {
+          summeryObj[item1] = dataArray[i].slice(6).map((x, y) => x * 1 + summeryObj[item1][y]);
+        }
+      } else {
+        if (criteria2) {
+          if (criteria3) {
+            summeryObj[item1] = {};
+            summeryObj[item1][item2] = {};
+            summeryObj[item1][item2][item3] = dataArray[i].slice(6).map(x => x * 1);
+          } else {
+            summeryObj[item1] = {};
+            summeryObj[item1][item2] = dataArray[i].slice(6).map(x => x * 1);
+          }
+        } else {
+          summeryObj[item1] = dataArray[i].slice(6).map(x => x * 1);
+        }
+      }
+    }
+    return summeryObj;
+  }
+
+  function makeBarChart(data, legendSet, width, height, parentDiv, palette, title) {
+
+    const chartArea = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    chartArea.setAttribute("width", width), chartArea.setAttribute("height", height);
+    parentDiv.appendChild(chartArea);
+
+    const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const basicFont = width * 0.01;
+    const titleFont = basicFont * 2.5;
+    const titleWidth = title.length * titleFont * 3 / 5;
+    banner.setAttribute("x", (width - titleWidth) / 2);
+    banner.setAttribute("y", chartArea.height.baseVal.value / 20);
+    banner.setAttribute("font-size", titleFont), banner.setAttribute("font-style", "italic"), banner.setAttribute("fill", "indigo");
+    banner.innerHTML = title;
+    chartArea.appendChild(banner);
+
+    let max = 0;
+    for (let i in data) {
+      let subtotal = 0;
+      for (let j in data[i]) {
+        subtotal += data[i][j][data[i][j].length - 1];
+      }
+      max = subtotal > max ? subtotal : max;
+    }
+    let unitNum = Math.pow(10, Math.floor(Math.log10(max)));
+    max / unitNum < 2 ? unitNum = unitNum / 4 : max / unitNum < 5 ? unitNum = unitNum / 2 : null;
+
+    const axisWidth = width * 0.05;
+    if (toggler.checked) {
+      for (let i = 0; i < 6; i++) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        const vPosition = height * 0.87 - height * 0.15 * i;
+        line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.99);
+        line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
+        line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
+        chartArea.appendChild(line);
+
+        const axisVal = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const axisLabel = (20 * i) + "%";
+        const cipherWidth = basicFont * (axisLabel.length + 1);
+        axisVal.setAttribute("x", axisWidth * 0.7 - cipherWidth * 0.6), axisVal.setAttribute("y", vPosition + height * 0.008);
+        axisVal.setAttribute("font-size", basicFont), axisVal.setAttribute("font-style", "italic");
+        axisVal.innerHTML = `${axisLabel.toLocaleString()}`;
+        chartArea.appendChild(axisVal);
+      }
+    } else {
+      for (let i = 0; i <= max / unitNum; i++) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        const vPosition = height * 0.87 - unitNum * i / max * height * 0.8;
+        line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.99);
+        line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
+        line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
+        chartArea.appendChild(line);
+
+        const axisVal = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const axisLabel = (Math.log10(unitNum) % 3 == 0 ? 1000 : unitNum / Math.pow(10, Math.floor(Math.log10(unitNum)) - Math.floor(Math.log10(unitNum)) % 3)) * i;
+        const cipherWidth = axisLabel != 0 ? basicFont * ((Math.floor(Math.log10(axisLabel)) + 1) + Math.floor(Math.floor(Math.log10(axisLabel)) / 3) / 3) : basicFont;
+        axisVal.setAttribute("x", axisWidth * 0.7 - cipherWidth * 0.6), axisVal.setAttribute("y", vPosition + height * 0.008);
+        axisVal.setAttribute("font-size", basicFont), axisVal.setAttribute("font-style", "italic");
+        axisVal.innerHTML = `${axisLabel.toLocaleString()}`;
+        chartArea.appendChild(axisVal);
+      }
+    }
+
+    let positionX, positionY, medianX;
+    const dataKeys = Object.keys(data);
+    const barWidth = chartArea.width.baseVal.value / (dataKeys.length + 2) * 0.7;
+    for (let i = 0; i < dataKeys.length; i++) {
+      positionX = width / dataKeys.length * 0.97 * i + axisWidth;
+      medianX = positionX + barWidth / 2;
+      const dataKey = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      dataKey.setAttribute("x", positionX - 5), dataKey.setAttribute("y", height * 0.905);
+      dataKey.setAttribute("font-size", `${barWidth / 4.2}px`);
+      dataKey.innerHTML = dataKeys[i];
+      chartArea.appendChild(dataKey);
+
+      let total = 0;
+      for (let j = 0; j < legendSet.length; j++) {
+        total += data[dataKeys[i]][legendSet[j]] ? data[dataKeys[i]][legendSet[j]][12] : 0;
+      }
+      let sum = 0;
+      for (let j = 0; j < legendSet.length; j++) {
+        const productQuota = data[dataKeys[i]][legendSet[j]] ? data[dataKeys[i]][legendSet[j]][12] : 0;
+        const barHeight = toggler.checked ? productQuota / total * height * 0.75 : productQuota / max * height * 0.8;
+        sum += barHeight;
+        positionY = height * 0.87 - sum;
+        const block = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        block.setAttribute("x", positionX), block.setAttribute("width", barWidth);
+        block.setAttribute("y", positionY), block.setAttribute("height", barHeight);
+        block.setAttribute("fill", palette[legendSet[j]]);
+        chartArea.appendChild(block);
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        if (toggler.checked) {
+          let labelContent = productQuota / total * 100;
+          labelContent > 0.01 ? labelContent = parseInt(labelContent, 10) : null;
+          const labelFont = basicFont * 1.3;
+          const cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * (Math.floor(Math.log10(labelContent)) + 2) : 0;
+
+          label.setAttribute("x", medianX - cipherWidth / 2), label.setAttribute("y", positionY + barHeight / 2 + height * 0.01);
+          label.setAttribute("font-size", labelFont), label.setAttribute("font-style", "italic");
+          labelContent >= (toggler.checked ? 3 : 30) ? label.innerHTML = labelContent.toLocaleString() + "%" : null;
+          chartArea.appendChild(label);
+        } else {
+          const unit = Math.pow(10, Math.floor(Math.log10(unitNum * 5)) - 3);
+          let labelContent = productQuota / unit;
+          labelContent > 0.01 ? labelContent = parseInt(labelContent, 10) : null;
+          const labelFont = basicFont * 1.3;
+          const cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
+
+          label.setAttribute("x", medianX - cipherWidth / 2), label.setAttribute("y", positionY + barHeight / 2 + height * 0.01);
+          label.setAttribute("font-size", labelFont);
+          labelContent >= (toggler.checked ? 3 : 30) ? label.innerHTML = labelContent.toLocaleString() : null;
+          chartArea.appendChild(label);
+        }
+      }
+
+      if (!toggler.checked) {
+        const sumLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const labelContent = parseInt(sum * max / height / 800000, 10);
+        const labelFont = basicFont * 1.5;
+        const cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
+
+        sumLabel.setAttribute("x", medianX - cipherWidth / 2), sumLabel.setAttribute("y", positionY - 15);
+        sumLabel.setAttribute("font-size", basicFont * 1.4), sumLabel.setAttribute("class", "sum");
+        sumLabel.innerHTML = labelContent.toLocaleString();
+        chartArea.appendChild(sumLabel);
+      }
+    }
+
+    const legendUnit = legendSet.length > 8 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+    for (let i = 0; i < legendSet.length; i++) {
+      positionX = width / 2 * (1 - legendUnit / 8) + width / 8 * (i % legendUnit + 0.3);
+      positionY = height * 0.93 + height * 0.04 * Math.floor(i / legendUnit);
+      const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
+      legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
+      legendMark.setAttribute("rx", 4), legendMark.setAttribute("ry", 4);
+      legendMark.setAttribute("fill", palette[legendSet[i]]);
+      chartArea.appendChild(legendMark);
+
+      const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
+      legend.setAttribute("font-size", basicFont * 1.4);
+      legend.innerHTML = legendSet[i];
+      chartArea.appendChild(legend);
+    }
+  }
+
+</script>
+
+</html>
