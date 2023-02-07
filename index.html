@@ -45,9 +45,9 @@
     }
 
     .checkbox {
-      position: absolute;
-      top: 45px;
-      left: var(--x);
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
     }
 
     .checkbox input {
@@ -69,8 +69,8 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      width: var(--j);
-      height: var(--j);
+      width: 2.1rem;
+      height: 2.1rem;
       border-radius: 50%;
     }
 
@@ -81,8 +81,8 @@
     .checkbox label::after {
       content: "";
       position: absolute;
-      width: var(--i);
-      height: var(--i);
+      width: 1.05rem;
+      height: 1.05rem;
       background: var(--greyDark);
       border-radius: 50%;
       transition: 0.3s ease;
@@ -108,7 +108,7 @@
     #tag {
       margin: 0;
       padding: 0;
-      font-size: var(--k);
+      font-size: 0.8rem;
       font-style: italic;
       color: blue;
     }
@@ -168,13 +168,6 @@
       let token = dist;
       makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
 
-      const checkDiv = document.querySelector('.checkbox');
-      checkDiv.setAttribute("style", `--x:${distanceX}px; --y:${distanceY}px`);
-      const label = document.getElementById("label");
-      label.setAttribute("style", `--i:${width * 0.0008}rem; --j:${width * 0.0015}rem`);
-      const tag = document.getElementById("tag");
-      tag.setAttribute("style", `--k:${width * 0.0005}rem`);
-
       const menuBar = document.getElementById("menuBar");
       const terrBox = document.createElement("div");
       terrBox.setAttribute("id", "terrBox");
@@ -198,7 +191,6 @@
           chart.remove();
           makeLineChart(terrData[territory], teamProduct[territory.substring(0, 5)], width, width * 0.5, document.body, palette, territory + " PRODUCT BUDGET");
           tag.innerHTML = "stack";
-          checkDiv.setAttribute("style", `--x:${distanceX}px; --y:${distanceY}px`);
         }
       }
 
@@ -215,7 +207,6 @@
           data = summerizeData(dataArray, "Dist", "Terr", "제품")[dist];
           makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
           tag.innerHTML = "ratio";
-          checkDiv.setAttribute("style", `--x:${distanceX}px; --y:${distanceY}px`);
 
           const previousDiv = document.getElementById("terrBox");
           menuBar.removeChild(previousDiv);
@@ -241,7 +232,6 @@
               chart.remove();
               makeLineChart(terrData[territory], teamProduct[territory.substring(0, 5)], width, width * 0.5, document.body, palette, territory + " PRODUCT BUDGET");
               tag.innerHTML = "stack";
-              checkDiv.setAttribute("style", `--x:${distanceX}px; --y:${distanceY}px`);
             }
           }
         });
@@ -262,9 +252,6 @@
         token.length == 8 ?
           makeLineChart(terrData[token], teamProduct[token.substring(0, 5)], width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
           makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
-        checkDiv.setAttribute("style", `--x:${distanceX}px; --y:${distanceY}px`);
-        label.setAttribute("style", `--i:${width * 0.0008}rem; --j:${width * 0.0015}rem`);
-        tag.setAttribute("style", `--k:${width * 0.0005}rem`);
       });
     }
   }
