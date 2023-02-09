@@ -89,20 +89,7 @@
     }
 
     .terr {
-      border: none;
-      border-radius: 13px;
-      background-color: #ba95ff7a;
       cursor: pointer;
-    }
-
-    .terr.selected {
-      margin: 2px 3px;
-      padding: 1px 2px;
-      border: 0.35rem solid #95aeff;
-      border-radius: 18px;
-      color: white;
-      background-color: #ba95ff;
-      border-color: #ba95ff;
     }
 
     #tag {
@@ -111,12 +98,6 @@
       font-size: 0.8rem;
       font-style: italic;
       color: blue;
-    }
-
-    #terrBox {
-      position: absolute;
-      top: 17px;
-      left: 350px;
     }
 
     rect {
@@ -148,6 +129,7 @@
   const selector = document.querySelectorAll('.district');
   selector[0].setAttribute("class", "selected");
   const checkbox = document.getElementById("checkbox");
+  let token;
 
   const xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function () {
@@ -164,37 +146,8 @@
       };
       const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
       let width = document.documentElement.clientWidth;
-      let token = dist;
+      token = dist;
       makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
-
-      const menuBar = document.getElementById("menuBar");
-      const terrBox = document.createElement("div");
-      terrBox.setAttribute("id", "terrBox");
-      menuBar.appendChild(terrBox);
-      for (let i = 0; i < Object.keys(data).length; i++) {
-        const terr = document.createElement("span");
-        const territory = Object.keys(data)[i]
-        terr.innerHTML = Object.keys(data)[i].substring(4, 8);
-        terr.setAttribute("class", "terr");
-        terrBox.appendChild(terr);
-
-        terr.onclick = function () {
-          token = territory;
-          const terrSet = document.querySelectorAll('.terr');
-          for (let j = 0; j < terrSet.length; j++) {
-            terrSet[j].removeAttribute("class");
-            terrSet[j].setAttribute("class", "terr");
-          }
-          terr.setAttribute("class", "terr selected");
-          const chart = document.getElementById("chart");
-          chart.remove();
-
-          const legendSet = Object.keys(terrData[territory]);
-          checkbox.checked = false;
-          makeLineChart(terrData[territory], legendSet, width, width * 0.5, document.body, palette, territory + " PRODUCT BUDGET");
-          tag.innerHTML = "stack";
-        }
-      }
 
       for (let i = 0; i < selector.length; i++) {
         selector[i].addEventListener("click", function () {
@@ -209,36 +162,6 @@
           data = summerizeData(dataArray, "Dist", "Terr", "제품")[dist];
           makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
           tag.innerHTML = "ratio";
-
-          const previousDiv = document.getElementById("terrBox");
-          menuBar.removeChild(previousDiv);
-          const terrBox = document.createElement("div");
-          terrBox.setAttribute("id", "terrBox");
-          menuBar.appendChild(terrBox);
-          for (let j = 0; j < Object.keys(data).length; j++) {
-            const terr = document.createElement("span");
-            const territory = Object.keys(data)[j]
-            terr.innerHTML = territory.substring(4, 8);
-            terr.setAttribute("class", "terr");
-            terrBox.appendChild(terr);
-
-            terr.onclick = function () {
-              token = territory;
-              const terrSet = document.querySelectorAll('.terr');
-              for (let j = 0; j < terrSet.length; j++) {
-                terrSet[j].removeAttribute("class");
-                terrSet[j].setAttribute("class", "terr");
-              }
-              terr.setAttribute("class", "terr selected");
-              const chart = document.getElementById("chart");
-              chart.remove();
-
-              const legendSet = Object.keys(terrData[territory]);
-              checkbox.checked = false;
-              makeLineChart(terrData[territory], legendSet, width, width * 0.5, document.body, palette, territory + " PRODUCT BUDGET");
-              tag.innerHTML = "stack";
-            }
-          }
         });
       }
 
@@ -352,6 +275,8 @@
     }
     let unitNum = Math.pow(10, Math.floor(Math.log10(max)));
     max / unitNum < 2 ? unitNum = unitNum / 4 : max / unitNum < 5 ? unitNum = unitNum / 2 : null;
+    const unitCipher = Math.floor(Math.log10(unitNum * 5));
+    const unit = Math.pow(10, unitCipher - (unitCipher % 3 == 0 ? 3 : unitCipher % 3));
 
     const axisWidth = width * 0.05;
     if (checkbox.checked) {
@@ -372,37 +297,62 @@
         chartArea.appendChild(axisLabel);
       }
     } else {
+      let unitPosition = 0;
       for (let i = 0; i <= max / unitNum; i++) {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         const vPosition = height * 0.87 - unitNum * i / max * height * 0.8;
+        i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.03 : null;
         line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.99);
         line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
         line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
         chartArea.appendChild(line);
 
         const axisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        const axisVal = (Math.log10(unitNum) % 3 == 0 ? 1000 : unitNum / Math.pow(10, Math.floor(Math.log10(unitNum)) - Math.floor(Math.log10(unitNum)) % 3)) * i;
+        const axisVal = unitNum / unit * i;
         const cipherWidth = axisVal != 0 ? basicFont * ((Math.floor(Math.log10(axisVal)) + 1) + Math.floor(Math.floor(Math.log10(axisVal)) / 3) / 3) : basicFont;
         axisLabel.setAttribute("x", axisWidth * 0.7 - cipherWidth * 0.6), axisLabel.setAttribute("y", vPosition + height * 0.008);
         axisLabel.setAttribute("font-size", basicFont), axisLabel.setAttribute("font-style", "italic");
         axisLabel.innerHTML = `${axisVal.toLocaleString()}`;
         chartArea.appendChild(axisLabel);
       }
+      const unitSign = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      unitSign.setAttribute("x", 0), unitSign.setAttribute("y", unitPosition);
+      unitSign.innerHTML = `*unit: ${Math.log10(unit) == 6 ? "mil." : Math.log10(unit) == 9 ? "bil." : "??"}`;
+      unitSign.setAttribute("font-size", basicFont), unitSign.setAttribute("font-style", "italic"), unitSign.setAttribute("fill", "blue");
+      chartArea.appendChild(unitSign);
     }
 
     let positionX, positionY, medianX;
     const dataKeys = Object.keys(data);
     const barWidth = chartArea.width.baseVal.value / (dataKeys.length + 2) * 0.7;
+    const signWidth = basicFont * 1.2 * 8 * 3 / 5;
     for (let i = 0; i < dataKeys.length; i++) {
       positionX = width / dataKeys.length * 0.97 * i + axisWidth;
       medianX = positionX + barWidth / 2;
+      const panel = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      panel.setAttribute("x", medianX - signWidth * 0.6), panel.setAttribute("width", signWidth * 1.2);
+      panel.setAttribute("y", height * 0.878), panel.setAttribute("height", signWidth * 0.35);
+      panel.setAttribute("rx", 5), panel.setAttribute("ry", 5);
+      panel.setAttribute("fill", "#5b0eeb");
+      chartArea.appendChild(panel);
+
       const dataKey = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      dataKey.setAttribute("x", positionX), dataKey.setAttribute("y", height * 0.905);
-      dataKey.setAttribute("font-size", basicFont * 1.2);
+      dataKey.setAttribute("x", medianX - signWidth / 2), dataKey.setAttribute("y", height * 0.908);
+      dataKey.setAttribute("font-size", basicFont * 1.2), dataKey.setAttribute("fill", "white");
       dataKey.setAttribute("class", "terr");
-      dataKey.onclick = function() {console.log("here!!")};
-      dataKey.innerHTML = dataKeys[i];
+      const territory = dataKeys[i];
+      dataKey.innerHTML = territory;
       chartArea.appendChild(dataKey);
+      dataKey.onclick = function () {
+        token = territory;
+        const chart = document.getElementById("chart");
+        chart.remove();
+
+        const legendSet = Object.keys(data[territory]);
+        checkbox.checked = false;
+        makeLineChart(data[territory], legendSet, width, width * 0.5, document.body, palette, territory + " PRODUCT BUDGET");
+        tag.innerHTML = "stack";
+      };
 
       let total = 0;
       for (let j = 0; j < legendSet.length; j++) {
@@ -432,7 +382,6 @@
           labelContent >= 3 ? label.innerHTML = labelContent.toLocaleString() + "%" : null;
           chartArea.appendChild(label);
         } else {
-          const unit = Math.pow(10, Math.floor(Math.log10(unitNum * 5)) - 3);
           let labelContent = productQuota / unit;
           labelContent > 0.01 ? labelContent = parseInt(labelContent, 10) : null;
           const labelFont = basicFont * 1.3;
@@ -451,17 +400,17 @@
         const labelFont = basicFont * 1.5;
         const cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
 
-        sumLabel.setAttribute("x", medianX - cipherWidth / 2), sumLabel.setAttribute("y", positionY - 15);
+        sumLabel.setAttribute("x", medianX - cipherWidth / 2), sumLabel.setAttribute("y", positionY - height * 0.015);
         sumLabel.setAttribute("font-size", basicFont * 1.4), sumLabel.setAttribute("class", "sum");
         sumLabel.innerHTML = labelContent.toLocaleString();
         chartArea.appendChild(sumLabel);
       }
     }
 
-    const legendUnit = legendSet.length > 8 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+    const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
     for (let i = 0; i < legendSet.length; i++) {
       positionX = width / 2 * (1 - legendUnit / 8) + width / 8 * (i % legendUnit + 0.3);
-      positionY = height * 0.93 + height * 0.04 * Math.floor(i / legendUnit);
+      positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
       const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
       legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
@@ -493,6 +442,15 @@
     banner.innerHTML = title;
     chartArea.appendChild(banner);
 
+    if (checkbox.checked) {
+      const comment = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      comment.setAttribute("x", width * 3 / 5);
+      comment.setAttribute("y", chartArea.height.baseVal.value / 13);
+      comment.setAttribute("font-size", basicFont), comment.setAttribute("font-style", "italic"), comment.setAttribute("fill", "indigo");
+      comment.innerHTML = "cumulated by month";
+      chartArea.appendChild(comment);
+    }
+
     let max = 0;
     for (let i in data) {
       if (checkbox.checked) {
@@ -505,24 +463,33 @@
     }
     let unitNum = Math.pow(10, Math.floor(Math.log10(max)));
     max / unitNum < 2 ? unitNum = unitNum / 4 : max / unitNum < 5 ? unitNum = unitNum / 2 : null;
+    const unitCipher = Math.floor(Math.log10(unitNum * 5));
+    const unit = Math.pow(10, unitCipher - (unitCipher % 3 == 0 ? 3 : unitCipher % 3));
 
     const axisWidth = width * 0.05;
+    let unitPosition = 0;
     for (let i = 0; i <= max / unitNum; i++) {
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       const vPosition = height * 0.87 - unitNum * i / max * height * 0.8;
+      i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.03 : null;
       line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.97);
       line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
       line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
       chartArea.appendChild(line);
 
       const axisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      const axisVal = (Math.log10(unitNum) % 3 == 0 ? 1000 : unitNum / Math.pow(10, Math.floor(Math.log10(unitNum)) - Math.floor(Math.log10(unitNum)) % 3)) * i;
+      const axisVal = unitNum / unit * i;
       const cipherWidth = axisVal != 0 ? basicFont * ((Math.floor(Math.log10(axisVal)) + 1) + Math.floor(Math.floor(Math.log10(axisVal)) / 3) / 3) : basicFont;
       axisLabel.setAttribute("x", axisWidth * 0.7 - cipherWidth * 0.6), axisLabel.setAttribute("y", vPosition + height * 0.008);
       axisLabel.setAttribute("font-size", basicFont), axisLabel.setAttribute("font-style", "italic");
       axisLabel.innerHTML = `${axisVal.toLocaleString()}`;
       chartArea.appendChild(axisLabel);
     }
+    const unitSign = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    unitSign.setAttribute("x", 0), unitSign.setAttribute("y", unitPosition);
+    unitSign.innerHTML = `*unit: ${Math.log10(unit) == 6 ? "mil." : Math.log10(unit) == 9 ? "bil." : "??"}`;
+    unitSign.setAttribute("font-size", basicFont), unitSign.setAttribute("font-style", "italic"), unitSign.setAttribute("fill", "blue");
+    chartArea.appendChild(unitSign);
 
     let positionX, positionY, medianX;
     const interval = (width * 0.98 - axisWidth) / 12;
@@ -538,11 +505,8 @@
       chartArea.appendChild(month);
     }
 
+    const labelFont = basicFont * 1.2;
     if (checkbox.checked) {
-      const labelFont = basicFont * 1.2;
-      const unitCipher = Math.floor(Math.log10(unitNum * 5));
-      const unit = Math.pow(10, unitCipher - (unitCipher % 3 == 0 ? 3 : unitCipher % 3));
-
       for (let i in data) {
         const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
         let sum = 0, itemPath = "";
@@ -550,7 +514,7 @@
         for (let j = 0; j < 12; j++) {
           sum += data[i][j];
           positionX = interval * j + axisWidth + interval / 3;
-          positionY = height * 0.87 - sum / max * height * 0.75;
+          positionY = height * 0.87 - sum / max * height * 0.8;
           itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
 
           const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -572,7 +536,7 @@
         for (let j = 0; j < 12; j++) {
           sum += data[i][j];
           positionX = interval * j + axisWidth + interval / 3;
-          positionY = height * 0.87 - sum / max * height * 0.75;
+          positionY = height * 0.87 - sum / max * height * 0.8;
 
           const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
           dot.setAttribute("cx", positionX), dot.setAttribute("cy", positionY), dot.setAttribute("r", basicFont * 0.5);
@@ -582,10 +546,6 @@
       }
     } else {
       const itemSet = Object.keys(data).sort((a, b) => data[b][12] - data[a][12]);
-      const labelFont = basicFont * 1.2;
-      const unitCipher = Math.floor(Math.log10(unitNum * 5));
-      const unit = Math.pow(10, unitCipher - (unitCipher % 3 == 0 ? 3 : unitCipher % 3));
-
       for (let i = 0; i < itemSet.length; i++) {
         const item = itemSet[i];
         const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -593,7 +553,7 @@
 
         for (let j = 0; j < 12; j++) {
           positionX = interval * j + axisWidth + interval / 3;
-          positionY = height * 0.87 - data[item][j] / max * height * 0.75;
+          positionY = height * 0.87 - data[item][j] / max * height * 0.8;
           itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
 
           const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -614,10 +574,10 @@
       }
     }
 
-    const legendUnit = legendSet.length > 8 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+    const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
     for (let i = 0; i < legendSet.length; i++) {
       positionX = width / 2 * (1 - legendUnit / 8) + width / 8 * (i % legendUnit + 0.3);
-      positionY = height * 0.93 + height * 0.04 * Math.floor(i / legendUnit);
+      positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
       const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
       legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
