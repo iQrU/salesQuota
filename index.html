@@ -331,8 +331,8 @@
       medianX = positionX + barWidth / 2;
       const panel = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       panel.setAttribute("x", medianX - signWidth * 0.6), panel.setAttribute("width", signWidth * 1.2);
-      panel.setAttribute("y", height * 0.878), panel.setAttribute("height", signWidth * 0.35);
-      panel.setAttribute("rx", 5), panel.setAttribute("ry", 5);
+      panel.setAttribute("y", height * 0.88), panel.setAttribute("height", signWidth * 0.35);
+      panel.setAttribute("rx", basicFont / 3), panel.setAttribute("ry", basicFont / 3);
       panel.setAttribute("fill", "#5b0eeb");
       chartArea.appendChild(panel);
 
@@ -414,7 +414,7 @@
       const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
       legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
-      legendMark.setAttribute("rx", 4), legendMark.setAttribute("ry", 4);
+      legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
       legendMark.setAttribute("fill", palette[legendSet[i]]);
       chartArea.appendChild(legendMark);
 
