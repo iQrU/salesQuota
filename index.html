@@ -581,7 +581,7 @@
       const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
       legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
-      legendMark.setAttribute("rx", 4), legendMark.setAttribute("ry", 4);
+      legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
       legendMark.setAttribute("fill", palette[legendSet[i]]);
       chartArea.appendChild(legendMark);
 
