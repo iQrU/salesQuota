@@ -108,6 +108,15 @@
       font-style: italic;
       fill: purple;
     }
+
+    .hide {
+      fill: transparent;
+      stroke: transparent;
+    }
+
+    .legend {
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -523,13 +532,13 @@
             labelContent = parseInt(labelContent, 10);
             cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
             label.setAttribute("x", positionX - cipherWidth / 2), label.setAttribute("y", positionY - height * 0.015);
-            label.setAttribute("font-size", labelFont);
+            label.setAttribute("font-size", labelFont), label.setAttribute("class", i.replace(" ", ""));
             label.innerHTML = labelContent.toLocaleString();
             chartArea.appendChild(label);
           }
         }
         itemLine.setAttribute("stroke", palette[i]), itemLine.setAttribute("stroke-opacity", 0.7), itemLine.setAttribute("stroke-width", basicFont / 2), itemLine.setAttribute("fill", "transparent");
-        itemLine.setAttribute("d", itemPath);
+        itemLine.setAttribute("d", itemPath), itemLine.setAttribute("class", i.replace(" ", ""));
         chartArea.appendChild(itemLine);
 
         sum = 0;
@@ -541,6 +550,7 @@
           const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
           dot.setAttribute("cx", positionX), dot.setAttribute("cy", positionY), dot.setAttribute("r", basicFont * 0.5);
           dot.setAttribute("stroke", palette[i]), dot.setAttribute("stroke-width", basicFont * 0.2), dot.setAttribute("fill", "white");
+          dot.setAttribute("class", i.replace(" ", ""));
           chartArea.appendChild(dot);
         }
       }
@@ -562,14 +572,14 @@
             labelContent = parseInt(labelContent, 10);
             cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
             label.setAttribute("x", positionX - cipherWidth / 2), label.setAttribute("y", positionY);
-            label.setAttribute("font-size", labelFont);
+            label.setAttribute("font-size", labelFont), label.setAttribute("class", itemSet[i].replace(" ", ""));
             label.innerHTML = labelContent.toLocaleString();
             chartArea.appendChild(label);
           }
         }
         itemPath += ` V ${height * 0.87} H ${axisWidth + interval / 3} Z`;
         itemLine.setAttribute("stroke", "transparent"), itemLine.setAttribute("fill", palette[item]), itemLine.setAttribute("fill-opacity", 0.6);
-        itemLine.setAttribute("d", itemPath);
+        itemLine.setAttribute("d", itemPath), itemLine.setAttribute("class", itemSet[i].replace(" ", ""));
         chartArea.appendChild(itemLine);
       }
     }
@@ -587,9 +597,25 @@
 
       const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
       legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
-      legend.setAttribute("font-size", basicFont * 1.4);
+      legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend");
       legend.innerHTML = legendSet[i];
       chartArea.appendChild(legend);
+
+      legend.addEventListener("click", function () {
+        for (let j = 0; j < legendSet.length; j++) {
+          const graphAll = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
+          for (let k = 0; k < graphAll.length; k++) {
+            graphAll[k].setAttribute("class", `${legendSet[j].replace(" ", "")}`);
+          }
+
+          if (legendSet[j] != legendSet[i]) {
+            const graphOther = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
+            for (let k = 0; k < graphOther.length; k++) {
+              graphOther[k].setAttribute("class", `${legendSet[j].replace(" ", "")} hide`);
+            }
+          }
+        }
+      });
     }
   }
 
