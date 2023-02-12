@@ -453,8 +453,8 @@
 
     if (checkbox.checked) {
       const comment = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      comment.setAttribute("x", width * 3 / 5);
-      comment.setAttribute("y", chartArea.height.baseVal.value / 13);
+      comment.setAttribute("x", width * 3 / 5), comment.setAttribute("y", chartArea.height.baseVal.value / 13);
+      comment.setAttribute("id", "comment");
       comment.setAttribute("font-size", basicFont), comment.setAttribute("font-style", "italic"), comment.setAttribute("fill", "indigo");
       comment.innerHTML = "cumulated by month";
       chartArea.appendChild(comment);
@@ -602,6 +602,13 @@
       chartArea.appendChild(legend);
 
       legend.addEventListener("click", function () {
+        const productTitle = title.replace("PRODUCT", legendSet[i]);
+        banner.innerHTML = productTitle;
+        banner.setAttribute("fill", palette[legendSet[i]);
+        if (checkbox.checked) {
+          const comment = document.getElementById("comment");
+          comment.setAttribute("fill", palette[legendSet[i]]);
+        }
         for (let j = 0; j < legendSet.length; j++) {
           const graphAll = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
           for (let k = 0; k < graphAll.length; k++) {
