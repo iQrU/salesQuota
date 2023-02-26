@@ -114,8 +114,16 @@
       stroke: transparent;
     }
 
+    .hidden {
+      display: none;
+    }
+
     .legend {
       cursor: pointer;
+    }
+
+    .dim {
+      opacity: 50%;
     }
   </style>
 </head>
@@ -160,6 +168,8 @@
 
       for (let i = 0; i < selector.length; i++) {
         selector[i].addEventListener("click", function () {
+          const checkbox = document.querySelector(`.checkbox`);
+          checkbox.setAttribute("class", "checkbox");
           for (let j = 0; j < selector.length; j++) {
             selector[j].removeAttribute("class", "selected");
           }
@@ -310,7 +320,7 @@
       for (let i = 0; i <= max / unitNum; i++) {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         const vPosition = height * 0.87 - unitNum * i / max * height * 0.8;
-        i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.03 : null;
+        i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.045 : null;
         line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.99);
         line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
         line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
@@ -429,9 +439,24 @@
 
       const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
       legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
-      legend.setAttribute("font-size", basicFont * 1.4);
+      legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend");
       legend.innerHTML = legendSet[i];
       chartArea.appendChild(legend);
+
+      legend.addEventListener("click", function () {
+        const chart = document.getElementById("chart");
+        chart.remove();
+        let productData = {};
+        const terrSet = Object.keys(data);
+        const rainbow = ["red", "orange", "yellow", "green", "skyblue", "blue", "purple", "violet", "pink", "gray", "brown"];
+        for (let j = 0; j < terrSet.length; j++) {
+          data[terrSet[j]][legendSet[i]] ?
+            productData[terrSet[j]] = data[terrSet[j]][legendSet[i]][12] : null;
+        }
+        const checkbox = document.querySelector(`.checkbox`);
+        checkbox.setAttribute("class", "checkbox hidden");
+        bakeDonut(productData, terrSet, width, height, document.body, rainbow, legendSet[i]);
+      });
     }
   }
 
@@ -480,7 +505,7 @@
     for (let i = 0; i <= max / unitNum; i++) {
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       const vPosition = height * 0.87 - unitNum * i / max * height * 0.8;
-      i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.03 : null;
+      i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.045 : null;
       line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.97);
       line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
       line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
@@ -502,7 +527,7 @@
 
     let positionX, positionY, medianX;
     const interval = (width * 0.98 - axisWidth) / 12;
-    const monthArray = ["'22Dec.", "Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov."];
+    const monthArray = ["Dec.(preYr)", "Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov."];
     const monthFont = basicFont * 1.3;
     for (let i = 0; i < 12; i++) {
       medianX = interval * i + axisWidth + interval / 3;
@@ -530,7 +555,7 @@
           labelContent = sum / unit;
           if (labelContent >= 5) {
             labelContent = parseInt(labelContent, 10);
-            cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
+            const cipherWidth = labelContent != 0 ? labelFont * 17 / 30 * ((Math.floor(Math.log10(labelContent)) + 1) + Math.floor(Math.floor(Math.log10(labelContent)) / 3) / 3) : 0;
             label.setAttribute("x", positionX - cipherWidth / 2), label.setAttribute("y", positionY - height * 0.015);
             label.setAttribute("font-size", labelFont), label.setAttribute("class", i.replace(" ", ""));
             label.innerHTML = labelContent.toLocaleString();
@@ -624,6 +649,104 @@
         }
       });
     }
+  }
+
+  function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palette, title) {
+
+    const donutTray = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    donutTray.setAttribute("width", trayWidth), donutTray.setAttribute("height", trayHeight), donutTray.setAttribute("id", "chart");
+    parentDiv.appendChild(donutTray);
+
+    const productColor = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
+    const basicFont = trayWidth * 0.01;
+    const center = { x: trayWidth / 3.8, y: trayHeight / 2 };
+    const radius = trayHeight / 2.3;
+    let startX = center.x, startY = center.y - radius, endX, endY, portion = 0;
+
+    let wholeSum = 0;
+    for (let i = 0; i < legendSet.length; i++) {
+      const item = legendSet[i];
+      wholeSum += dataDough[item] ? dataDough[item] : 0;
+    }
+
+    const unitNum = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+    let positionX, positionY;
+    for (let i = 0; i < legendSet.length; i++) {
+      const item = legendSet[i], itemValue = dataDough[item] ? dataDough[item] : 0;
+      const share = itemValue / wholeSum;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const largeArcFlag = share > 0.5 ? 1 : 0;
+      const posiRad = portion + share * Math.PI;
+      portion += 2 * Math.PI * share;
+      endX = center.x + radius * Math.sin(portion), endY = center.y - radius * Math.cos(portion);
+
+      const color = Array.isArray(palette) ? palette[i % palette.length] : palette[item];
+      path.setAttribute("fill", color);
+      path.setAttribute("stroke", "white");
+      path.setAttribute("d", `M ${center.x} ${center.y} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`);
+      startX = endX, startY = endY;
+      donutTray.appendChild(path);
+
+      if (share > 0.01) {
+        const innerText = (share * 100).toFixed(0) + "%";
+        const percentFont = basicFont * 1.8;
+        const cipherWidth = percentFont * 17 / 30 * innerText.length;
+        const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        percent.setAttribute("x", center.x - cipherWidth / 2 + 0.78 * radius * Math.sin(posiRad)), percent.setAttribute("y", center.y + percentFont * 17 / 60 - 0.78 * radius * Math.cos(posiRad));
+        percent.setAttribute("font-size", percentFont);
+        color == "purple" || color == "blue" || color == "green" ? percent.setAttribute("fill", "white") : null;
+        percent.innerHTML = innerText;
+        donutTray.appendChild(percent);
+      }
+
+      positionX = trayWidth * 3 / 5 + trayWidth / 7.5 * Math.floor(i / unitNum);
+      positionY = trayHeight / 2 + basicFont * 0.9 - trayHeight * 0.09 * (unitNum / 2 - i % unitNum);
+      const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      legendMark.setAttribute("x", positionX - trayWidth / 65), legendMark.setAttribute("width", trayWidth / 55);
+      legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", trayWidth / 55);
+      legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
+      legendMark.setAttribute("fill", color);
+      donutTray.appendChild(legendMark);
+
+      const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      legend.setAttribute("x", positionX + trayWidth * 0.01), legend.setAttribute("y", positionY + trayHeight * 0.03);
+      legend.setAttribute("font-size", basicFont * 1.8);
+      legend.innerHTML = legendSet[i];
+      donutTray.appendChild(legend);
+    }
+
+    const hole = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    hole.setAttribute("cx", center.x), hole.setAttribute("cy", center.y);
+    hole.setAttribute("r", radius * 3 / 5), hole.setAttribute("fill", "white");
+    donutTray.appendChild(hole);
+
+    const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const titleFont = basicFont * 3.2;
+    const titleWidth = title.length * titleFont * 17 / 30;
+    banner.setAttribute("x", center.x - titleWidth / 2);
+    banner.setAttribute("y", center.y - basicFont * 2);
+    banner.setAttribute("font-size", titleFont), banner.setAttribute("font-style", "italic"), banner.setAttribute("fill", productColor[title]);
+    banner.innerHTML = title;
+    donutTray.appendChild(banner);
+
+    const productVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const volumeFont = basicFont * 2;
+    const volumeContent = "₩ " + wholeSum.toLocaleString();
+    const volumeWidth = (Math.floor(Math.log10(wholeSum)) - 1) * volumeFont * 17 / 30;
+    productVolume.setAttribute("x", center.x - volumeWidth / 2);
+    productVolume.setAttribute("y", center.y + titleFont * 17 / 15);
+    productVolume.setAttribute("font-size", volumeFont), productVolume.setAttribute("font-style", "italic");
+    productVolume.setAttribute("fill", productColor[title]), productVolume.setAttribute("class", "dim");
+    productVolume.innerHTML = volumeContent;
+    donutTray.appendChild(productVolume);
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", center.x - radius * 0.5), line.setAttribute("x2", center.x + radius * 0.5);
+    line.setAttribute("y1", center.y), line.setAttribute("y2", center.y), line.setAttribute("class", "dim");
+    line.setAttribute("stroke", productColor[title]), line.setAttribute("stroke-width", basicFont / 2), line.setAttribute("stroke-linecap", "round");
+    donutTray.appendChild(line);
+
+
   }
 
 </script>
