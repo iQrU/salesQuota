@@ -3,7 +3,8 @@
 const selector = document.querySelectorAll('.district');
 selector[0].setAttribute("class", "selected");
 const checkbox = document.getElementById("checkbox");
-let token, productCodes;
+let token, productCodes, donutTitle;
+let productData = {}, terrSum = {};
 const productCodeSet = { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand", BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" };
 
 const xhr = new XMLHttpRequest();
@@ -20,6 +21,7 @@ xhr.onreadystatechange = function () {
       CORE4: ["BAVENCIO", "BESPONSA", "CRESEMBA", "ELIQUIS", "ENBREL", "ERAXIS", "IBRANCE", "INLYTA", "PRECEDEX", "SUTENE", "TYGACIL", "VFEND", "VIZIMPRO", "XALKORI", "XELJANZ", "ZYVOX"]
     };
     const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
+    const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
     let width = document.documentElement.clientWidth;
     token = dist;
     makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
@@ -57,11 +59,13 @@ xhr.onreadystatechange = function () {
       width = document.documentElement.clientWidth;
       const chart = document.getElementById("chart");
       chart.remove();
-      const allProductDiv = document.getElementById("productDiv");
-      allProductDiv ? allProductDiv.remove() : null;
-      token.length == 8 ?
-        makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-        makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+      Object.keys(productCodes).indexOf(token) != -1 ?
+        bakeDonut(productData, Object.keys(data), width, width * 0.5, document.body, rainbow, donutTitle) :
+        token == "emptyDonut" ?
+          bakeDonut(terrSum, Object.keys(data), width, width * 0.5, document.body, rainbow, donutTitle) :
+          token.length == 8 ?
+            makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
+            makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     });
   }
 }
@@ -160,7 +164,8 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
   banner.innerHTML = title;
   chartArea.appendChild(banner);
 
-  let max = 0, terrSum = {};
+  let max = 0;
+  terrSum = {}
   for (let i in data) {
     let subtotal = 0;
     for (let j in data[i]) {
@@ -322,6 +327,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
     chartArea.appendChild(legend);
 
     legend.addEventListener("click", function () {
+      token = legendSet[i];
       const chart = document.getElementById("chart");
       chart.remove();
 
@@ -345,6 +351,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           for (let terr in productData) {
             productData[terr] = terrSum[terr];
           }
+          donutTitle = "ALL Products";
           bakeDonut(productData, dataKeys, width, height, document.body, rainbow, "ALL Products");
         } else {
           for (let j = 0; j < productItems.length; j++) {
@@ -354,6 +361,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           for (let terr in productData) {
             productData[terr] = 0;
           }
+          token = "emptyDonut";
         }
       };
       allProductDiv.appendChild(allPushBtn);
@@ -367,7 +375,6 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
         allProductDiv.appendChild(productItem);
       }
 
-      let productData = {};
       const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
       const productItems = document.querySelectorAll(`.productItem`);
       for (let j = 0; j < productItems.length; j++) {
@@ -405,6 +412,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                 title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` :
                 activeNodes.length == legendSet.length ?
                   title = "ALL Products" : title = "SEVERAL";
+          donutTitle = title;
           productSet.length != 0 ? bakeDonut(productData, dataKeys, width, height, document.body, rainbow, title) : null;
         };
       }
@@ -416,6 +424,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
       const checkbox = document.querySelector(`.checkbox`);
       checkbox.setAttribute("class", "checkbox hidden");
       bakeDonut(productData, dataKeys, width, height, document.body, rainbow, legendSet[i]);
+      donutTitle = legendSet[i];
     });
   }
 }
