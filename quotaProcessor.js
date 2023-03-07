@@ -406,12 +406,12 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           let title;
           productSet.length == 1 ?
             title = productSet[0] :
-            productCodeSet[codeSet] ?
-              title = productCodeSet[codeSet] :
-              productSet.length == 2 ?
-                title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` :
-                activeNodes.length == legendSet.length ?
-                  title = "ALL Products" : title = "SEVERAL";
+            activeNodes.length == legendSet.length ?
+              title = "ALL Products" :
+              productCodeSet[codeSet] ?
+                title = productCodeSet[codeSet] :
+                  productSet.length == 2 ?
+                  title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` : title = "SEVERAL";
           donutTitle = title;
           productSet.length != 0 ? bakeDonut(productData, dataKeys, donutWidth, donutWidth * 0.5, document.body, rainbow, title) : null;
         };
