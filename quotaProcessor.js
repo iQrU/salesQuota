@@ -3,7 +3,7 @@
 const selector = document.querySelectorAll('.district');
 selector[0].setAttribute("class", "selected");
 const checkbox = document.getElementById("checkbox");
-let token, productCodes, donutTitle;
+let token, productCodes, donutTitle, donutWidth = document.documentElement.clientWidth;
 let productData = {}, terrSum = {};
 const productCodeSet = { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand", BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" };
 
@@ -56,7 +56,7 @@ xhr.onreadystatechange = function () {
     }
 
     window.addEventListener("resize", function () {
-      width = document.documentElement.clientWidth;
+      width = document.documentElement.clientWidth, donutWidth = document.documentElement.clientWidth;
       const chart = document.getElementById("chart");
       chart.remove();
       Object.keys(productCodes).indexOf(token) != -1 ?
@@ -225,7 +225,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
   }
 
   let positionX, positionY, medianX;
-  const dataKeys = Object.keys(data);
+  const dataKeys = Object.keys(data).sort();
   const barWidth = chartArea.width.baseVal.value / (dataKeys.length + 2) * 0.7;
   const signWidth = basicFont * 1.2 * 8 * 3 / 5;
   for (let i = 0; i < dataKeys.length; i++) {
@@ -352,7 +352,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
             productData[terr] = terrSum[terr];
           }
           donutTitle = "ALL Products";
-          bakeDonut(productData, dataKeys, width, height, document.body, rainbow, "ALL Products");
+          bakeDonut(productData, dataKeys, donutWidth, donutWidth * 0.5, document.body, rainbow, "ALL Products");
         } else {
           for (let j = 0; j < productItems.length; j++) {
             const productItem = productItems[j];
@@ -413,7 +413,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                 activeNodes.length == legendSet.length ?
                   title = "ALL Products" : title = "SEVERAL";
           donutTitle = title;
-          productSet.length != 0 ? bakeDonut(productData, dataKeys, width, height, document.body, rainbow, title) : null;
+          productSet.length != 0 ? bakeDonut(productData, dataKeys, donutWidth, donutWidth * 0.5, document.body, rainbow, title) : null;
         };
       }
 
