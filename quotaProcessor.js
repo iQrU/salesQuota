@@ -757,7 +757,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
         const volumeFont = basicFont * 2.1;
         const volumeContent = "₩ " + itemValue.toLocaleString();
         const volumeCipher = itemValue != 0 ? Math.floor(Math.log10(itemValue)) : 0;
-        const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 3 / 5;
+        const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
         legendVolume.setAttribute("x", center.x + radius * 0.45 - volumeWidth), legendVolume.setAttribute("y", center.y - volumeFont);
         legendVolume.setAttribute("class", "legendVolume");
         legendVolume.setAttribute("font-size", volumeFont), legendVolume.setAttribute("font-style", "italic");
@@ -788,7 +788,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   const volumeFont = basicFont * 2.1;
   const volumeContent = "₩ " + wholeSum.toLocaleString();
   const volumeCipher = Math.floor(Math.log10(wholeSum));
-  const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 3 / 5;
+  const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
   productVolume.setAttribute("x", center.x + radius * 0.45 - volumeWidth);
   productVolume.setAttribute("y", center.y + titleFont * 17 / 15);
   productVolume.setAttribute("font-size", volumeFont), productVolume.setAttribute("font-style", "italic");
