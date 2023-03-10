@@ -116,9 +116,39 @@ rect {
   opacity: 50%;
 }
 
-#productDiv {
+.dimmer {
+  opacity: 15%;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+#subMenuDiv {
   display: flex;
   flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.subItem {
+  margin: 2px 5px;
+  padding: 0 5px;
+  border: 0.15rem solid purple;
+  border-radius: 10px;
+  color: purple;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.subItem:hover {
+  opacity: 1;
+}
+
+.terrActive {
+  color: white;
+  background-color: purple;
+  opacity: 1;
 }
 
 .productItem {
