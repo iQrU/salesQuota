@@ -3,7 +3,7 @@
 const selector = document.querySelectorAll('.district');
 selector[0].setAttribute("class", "selected");
 const checkbox = document.getElementById("checkbox");
-let token, productCodes, donutTitle, donutWidth = document.documentElement.clientWidth;
+let token, productCodes, donutTitle, trayWidth = document.documentElement.clientWidth;
 let productData = {}, terrSum = {};
 const productCodeSet = { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand", BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" };
 
@@ -37,7 +37,7 @@ xhr.onreadystatechange = function () {
         selector[i].setAttribute("class", "selected");
         const chart = document.getElementById("chart");
         chart.remove();
-        const allProductDiv = document.getElementById("productDiv");
+        const allProductDiv = document.getElementById("subMenuDiv");
         allProductDiv ? allProductDiv.remove() : null;
         dist = selector[i].innerText;
         token = dist;
@@ -56,7 +56,7 @@ xhr.onreadystatechange = function () {
     }
 
     window.addEventListener("resize", function () {
-      width = document.documentElement.clientWidth, donutWidth = document.documentElement.clientWidth;
+      width = document.documentElement.clientWidth, trayWidth = width;
       const chart = document.getElementById("chart");
       chart.remove();
       Object.keys(productCodes).indexOf(token) != -1 ?
@@ -250,6 +250,35 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
       const chart = document.getElementById("chart");
       chart.remove();
 
+      const allTerrDiv = document.createElement("div");
+      allTerrDiv.setAttribute("id", "subMenuDiv");
+      document.body.appendChild(allTerrDiv);
+      for (let j = 0; j < dataKeys.length; j++) {
+        const terr = dataKeys[j];
+        const terrBox = document.createElement("div");
+        terrBox.setAttribute("class", "subItem");
+        i == j ? terrBox.classList.toggle('terrActive') : null;
+        terrBox.innerHTML = terr;
+        allTerrDiv.appendChild(terrBox);
+
+        terrBox.onclick = function () {
+          token = terr;
+          const chart = document.getElementById("chart");
+          chart.remove();
+
+          const subItems = document.querySelectorAll(`.subItem`);
+          for (let k = 0; k < subItems.length; k++) {
+            const subItem = subItems[k];
+            subItem.setAttribute("class", "subItem");
+          }
+          terrBox.setAttribute("class", "subItem terrActive");
+
+          const legendSet = Object.keys(data[terr]);
+          checkbox.checked = false;
+          makeLineChart(data[terr], legendSet, trayWidth, trayWidth * 0.5, document.body, palette, terr + " PRODUCT BUDGET");
+        };
+      }
+
       const legendSet = Object.keys(data[territory]);
       checkbox.checked = false;
       makeLineChart(data[territory], legendSet, width, width * 0.5, document.body, palette, territory + " PRODUCT BUDGET");
@@ -332,7 +361,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
       chart.remove();
 
       const allProductDiv = document.createElement("div");
-      allProductDiv.setAttribute("id", "productDiv");
+      allProductDiv.setAttribute("id", "subMenuDiv");
       document.body.appendChild(allProductDiv);
       const allPushBtn = document.createElement("div");
       allPushBtn.setAttribute("id", "allPushBtn");
@@ -352,7 +381,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
             productData[terr] = terrSum[terr];
           }
           donutTitle = "ALL Products";
-          bakeDonut(productData, dataKeys, donutWidth, donutWidth * 0.5, document.body, rainbow, "ALL Products");
+          bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, "ALL Products");
         } else {
           for (let j = 0; j < productItems.length; j++) {
             const productItem = productItems[j];
@@ -411,10 +440,10 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
               title = "ALL Products" :
               productCodeSet[codeSet] ?
                 title = productCodeSet[codeSet] :
-                  productSet.length == 2 ?
+                productSet.length == 2 ?
                   title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` : title = "SEVERAL";
           donutTitle = title;
-          productSet.length != 0 ? bakeDonut(productData, dataKeys, donutWidth, donutWidth * 0.5, document.body, rainbow, title) : null;
+          productSet.length != 0 ? bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, title) : null;
         };
       }
 
@@ -640,7 +669,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   }
 
   const unitNum = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
-  let positionX, positionY;
+  let positionX, positionY, tag;
   for (let i = 0; i < legendSet.length; i++) {
     const item = legendSet[i], itemValue = dataDough[item] ? dataDough[item] : 0;
     const color = Array.isArray(palette) ? palette[i % palette.length] : palette[item];
@@ -657,8 +686,8 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       portion += 2 * Math.PI * share;
       endX = center.x + radius * Math.sin(portion), endY = center.y - radius * Math.cos(portion);
 
-      path.setAttribute("fill", color);
-      path.setAttribute("stroke", "white");
+      path.setAttribute("fill", color), path.setAttribute("stroke", "white");
+      path.setAttribute("class", `${legendSet[i]}`);
       path.setAttribute("d", `M ${center.x} ${center.y} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`);
       startX = endX, startY = endY;
       donutTray.appendChild(path);
@@ -671,6 +700,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
       percent.setAttribute("x", center.x - cipherWidth / 2 + 0.78 * radius * Math.sin(posiRad)), percent.setAttribute("y", center.y + percentFont * 17 / 60 - 0.78 * radius * Math.cos(posiRad));
       percent.setAttribute("font-size", percentFont);
+      percent.setAttribute("class", `${legendSet[i]}`);
       color == "purple" || color == "blue" || color == "green" || color == "brown" ? percent.setAttribute("fill", "white") : null;
       percent.innerHTML = innerText;
       donutTray.appendChild(percent);
@@ -682,13 +712,60 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
     legendMark.setAttribute("x", positionX - trayWidth / 65), legendMark.setAttribute("width", trayWidth / 55);
     legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", trayWidth / 55);
     legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
-    legendMark.setAttribute("fill", color);
+    legendMark.setAttribute("fill", color), legendMark.setAttribute("class", `${legendSet[i]}`);
     donutTray.appendChild(legendMark);
 
     const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
     legend.setAttribute("x", positionX + trayWidth * 0.01), legend.setAttribute("y", positionY + trayHeight * 0.03);
-    legend.setAttribute("font-size", basicFont * 1.8);
+    legend.setAttribute("font-size", basicFont * 1.8), legend.setAttribute("class", `legend ${legendSet[i]}`);
     legend.innerHTML = legendSet[i];
+
+    legend.onclick = function () {
+      if (legendSet[i] != tag) {
+        for (let j = 0; j < legendSet.length; j++) {
+          const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
+          for (let k = 0; k < legendPie.length; k++) {
+            legendPie[k].classList.value = `legend ${legendSet[j]}`;
+            i != j ? legendPie[k].classList.toggle('dimmer') : null;
+            i == j ? legendPie[k].classList.toggle('bold') : null;
+          }
+        }
+        tag = legendSet[i];
+      } else {
+        for (let j = 0; j < legendSet.length; j++) {
+          const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
+          for (let k = 0; k < legendPie.length; k++) {
+            legendPie[k].classList.toggle('dimmer');
+          }
+        }
+        const thisPie = document.querySelectorAll(`.${legendSet[i]}`);
+        for (let j = 0; j < thisPie.length; j++) {
+          thisPie[j].classList.toggle('dimmer');
+          thisPie[j].classList.toggle('bold');
+        }
+        thisPie[0].classList.value == `legend ${legendSet[i]}` ? tag = "total" : null;
+      }
+
+      const prevBanner = document.querySelector(`.banner`);
+      const previousVol = document.querySelector(`.legendVolume`);
+      previousVol ? previousVol.remove() : null;
+      if (tag == "total") {
+        prevBanner.setAttribute("font-size", basicFont * 3.2), prevBanner.setAttribute("y", center.y - basicFont * 2);
+      } else {
+        prevBanner.setAttribute("font-size", basicFont * 2), prevBanner.setAttribute("y", center.y - basicFont * 6);
+        const legendVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const volumeFont = basicFont * 2.1;
+        const volumeContent = "₩ " + itemValue.toLocaleString();
+        const volumeCipher = itemValue != 0 ? Math.floor(Math.log10(itemValue)) : 0;
+        const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
+        legendVolume.setAttribute("x", center.x + radius * 0.48 - volumeWidth), legendVolume.setAttribute("y", center.y - volumeFont);
+        legendVolume.setAttribute("class", "legendVolume");
+        legendVolume.setAttribute("font-size", volumeFont), legendVolume.setAttribute("font-style", "italic");
+        legendVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`), legendVolume.setAttribute("font-weight", "bold");
+        legendVolume.innerHTML = volumeContent;
+        donutTray.appendChild(legendVolume);  
+      }
+    };
     donutTray.appendChild(legend);
   }
 
@@ -700,8 +777,8 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
   const titleFont = basicFont * 3.2;
   const titleWidth = title.length * titleFont * 17 / 30;
-  banner.setAttribute("x", center.x - titleWidth / 2);
-  banner.setAttribute("y", center.y - basicFont * 2);
+  banner.setAttribute("x", center.x - titleWidth / 2), banner.setAttribute("y", center.y - basicFont * 2);
+  banner.setAttribute("class", "banner");
   banner.setAttribute("font-size", titleFont), banner.setAttribute("font-style", "italic");
   banner.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`);
   banner.innerHTML = title;
