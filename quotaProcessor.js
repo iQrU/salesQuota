@@ -382,6 +382,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
         productItem.onclick = function () {
           const chart = document.getElementById("chart");
           chart ? chart.remove() : null;
+          token = productItem.innerText;
           productItem.classList.toggle('active');
           if (productItem.classList.value == "productItem active") {
             for (let k = 0; k < dataKeys.length; k++) {
