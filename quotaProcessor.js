@@ -758,7 +758,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
         const volumeContent = "₩ " + itemValue.toLocaleString();
         const volumeCipher = itemValue != 0 ? Math.floor(Math.log10(itemValue)) : 0;
         const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
-        legendVolume.setAttribute("x", center.x + radius * 0.48 - volumeWidth), legendVolume.setAttribute("y", center.y - volumeFont);
+        legendVolume.setAttribute("x", center.x + radius * 0.45 - volumeWidth), legendVolume.setAttribute("y", center.y - volumeFont);
         legendVolume.setAttribute("class", "legendVolume");
         legendVolume.setAttribute("font-size", volumeFont), legendVolume.setAttribute("font-style", "italic");
         legendVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`), legendVolume.setAttribute("font-weight", "bold");
@@ -785,13 +785,14 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   donutTray.appendChild(banner);
 
   const productVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  const volumeFont = basicFont * 2;
+  const volumeFont = basicFont * 2.1;
   const volumeContent = "₩ " + wholeSum.toLocaleString();
-  const volumeWidth = (Math.floor(Math.log10(wholeSum)) - 1) * volumeFont * 17 / 30;
-  productVolume.setAttribute("x", center.x - volumeWidth / 2);
+  const volumeCipher = Math.floor(Math.log10(wholeSum));
+  const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
+  productVolume.setAttribute("x", center.x + radius * 0.45 - volumeWidth);
   productVolume.setAttribute("y", center.y + titleFont * 17 / 15);
   productVolume.setAttribute("font-size", volumeFont), productVolume.setAttribute("font-style", "italic");
-  productVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`), productVolume.setAttribute("class", "dim");
+  productVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`), productVolume.setAttribute("font-weight", "bold");
   productVolume.innerHTML = volumeContent;
   donutTray.appendChild(productVolume);
 
