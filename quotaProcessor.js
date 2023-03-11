@@ -274,7 +274,6 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           terrBox.setAttribute("class", "subItem terrActive");
 
           const legendSet = Object.keys(data[terr]);
-          checkbox.checked = false;
           makeLineChart(data[terr], legendSet, trayWidth, trayWidth * 0.5, document.body, palette, terr + " PRODUCT BUDGET");
         };
       }
@@ -609,29 +608,31 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
   }
 
   const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+  let tag;
   for (let i = 0; i < legendSet.length; i++) {
     positionX = width / 2 * (1 - legendUnit / 8) + width / 8 * (i % legendUnit + 0.3);
     positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
+    const item = legendSet[i];
     const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
     legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
     legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
-    legendMark.setAttribute("fill", palette[legendSet[i]]);
+    legendMark.setAttribute("fill", palette[item]);
     chartArea.appendChild(legendMark);
 
     const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
     legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
     legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend");
-    legend.innerHTML = legendSet[i];
+    legend.innerHTML = item;
     chartArea.appendChild(legend);
 
     legend.addEventListener("click", function () {
-      const productTitle = title.replace("PRODUCT", legendSet[i]);
+      const productTitle = title.replace("PRODUCT", item);
       banner.innerHTML = productTitle;
-      banner.setAttribute("fill", palette[legendSet[i]]);
+      banner.setAttribute("fill", palette[item]);
       if (checkbox.checked) {
         const comment = document.getElementById("comment");
-        comment.setAttribute("fill", palette[legendSet[i]]);
+        comment.setAttribute("fill", palette[item]);
       }
       for (let j = 0; j < legendSet.length; j++) {
         const graphAll = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
@@ -639,13 +640,16 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
           graphAll[k].setAttribute("class", `${legendSet[j].replace(" ", "")}`);
         }
 
-        if (legendSet[j] != legendSet[i]) {
-          const graphOther = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
-          for (let k = 0; k < graphOther.length; k++) {
-            graphOther[k].setAttribute("class", `${legendSet[j].replace(" ", "")} hide`);
-          }
+        if (tag != item) {
+          if (legendSet[j] != item) {
+            const graphOther = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
+            for (let k = 0; k < graphOther.length; k++) {
+              graphOther[k].setAttribute("class", `${legendSet[j].replace(" ", "")} hide`);
+            }
+          }  
         }
       }
+      tag = item;
     });
   }
 }
