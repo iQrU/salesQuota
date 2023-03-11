@@ -338,8 +338,9 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
   }
 
   const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+  const legendInterval = legendUnit < 5 ? 6 : 8;
   for (let i = 0; i < legendSet.length; i++) {
-    positionX = width / 2 * (1 - legendUnit / 8) + width / 8 * (i % legendUnit + 0.3);
+    positionX = width / 2 * (1 - legendUnit / legendInterval) + width / legendInterval * (i % legendUnit + 0.3);
     positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
     const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
@@ -697,12 +698,12 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       donutTray.appendChild(path);
     }
 
-    if (share > 0.01) {
+    if (share > 0.02) {
       const innerText = (share * 100).toFixed(0) + "%";
       const percentFont = basicFont * 1.8;
-      const cipherWidth = percentFont * 17 / 30 * innerText.length;
       const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      percent.setAttribute("x", center.x - cipherWidth / 2 + 0.78 * radius * Math.sin(posiRad)), percent.setAttribute("y", center.y + percentFont * 17 / 60 - 0.78 * radius * Math.cos(posiRad));
+      percent.setAttribute("x", center.x + 0.8 * radius * Math.sin(posiRad)), percent.setAttribute("y", center.y - 0.8 * radius * Math.cos(posiRad));
+      percent.setAttribute("text-anchor", "middle"), percent.setAttribute("alignment-baseline", "middle");
       percent.setAttribute("font-size", percentFont);
       percent.setAttribute("class", `${item}tag`);
       color == "purple" || color == "blue" || color == "green" || color == "brown" ? percent.setAttribute("fill", "white") : null;
