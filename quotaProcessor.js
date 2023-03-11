@@ -628,29 +628,46 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
     chartArea.appendChild(legend);
 
     legend.addEventListener("click", function () {
-      const productTitle = title.replace("PRODUCT", item);
-      banner.innerHTML = productTitle;
-      banner.setAttribute("fill", palette[item]);
-      if (checkbox.checked) {
-        const comment = document.getElementById("comment");
-        comment.setAttribute("fill", palette[item]);
-      }
-      for (let j = 0; j < legendSet.length; j++) {
-        const graphAll = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
-        for (let k = 0; k < graphAll.length; k++) {
-          graphAll[k].setAttribute("class", `${legendSet[j].replace(" ", "")}`);
+      if (tag != item) {
+        const productTitle = title.replace("PRODUCT", item);
+        banner.innerHTML = productTitle;
+        banner.setAttribute("fill", palette[item]);
+        if (checkbox.checked) {
+          const comment = document.getElementById("comment");
+          comment.setAttribute("fill", palette[item]);
         }
 
-        if (tag != item) {
-          if (legendSet[j] != item) {
-            const graphOther = document.querySelectorAll(`.${legendSet[j].replace(" ", "")}`);
+        for (let j = 0; j < legendSet.length; j++) {
+          const legendClass = legendSet[j].replace(" ", "");
+          const graphAll = document.querySelectorAll(`.${legendClass}`);
+          for (let k = 0; k < graphAll.length; k++) {
+            graphAll[k].setAttribute("class", `${legendClass}`);
+          }
+          if (j != i) {
+            const graphOther = document.querySelectorAll(`.${legendClass}`);
             for (let k = 0; k < graphOther.length; k++) {
-              graphOther[k].setAttribute("class", `${legendSet[j].replace(" ", "")} hide`);
+              graphOther[k].classList.toggle('hide');
             }
-          }  
+          }
         }
+        tag = item;
+      } else {
+        banner.innerHTML = title;
+        banner.setAttribute("fill", "indigo");
+        if (checkbox.checked) {
+          const comment = document.getElementById("comment");
+          comment.setAttribute("fill", "indigo");
+        }
+
+        for (let j = 0; j < legendSet.length; j++) {
+          const legendClass = legendSet[j].replace(" ", "");
+          const graphAll = document.querySelectorAll(`.${legendClass}`);
+          for (let k = 0; k < graphAll.length; k++) {
+            graphAll[k].setAttribute("class", `${legendClass}`);
+          }
+        }
+        tag = "total";
       }
-      tag = item;
     });
   }
 }
@@ -731,7 +748,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
           const pieTag = document.querySelector(`.${legendSet[j]}tag`);
           if (pieTag) {
             pieTag.classList.value = `legend ${legendSet[j]}tag`;
-            i != j ? pieTag.classList.toggle('hide') : pieTag.classList.toggle('bold');  
+            i != j ? pieTag.classList.toggle('hide') : pieTag.classList.toggle('bold');
           }
 
           const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
@@ -782,7 +799,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
         legendVolume.setAttribute("font-size", volumeFont);
         legendVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`);
         legendVolume.innerHTML = volumeContent;
-        donutTray.appendChild(legendVolume);  
+        donutTray.appendChild(legendVolume);
       }
     };
     donutTray.appendChild(legend);
