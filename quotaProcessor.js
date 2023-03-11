@@ -60,9 +60,9 @@ xhr.onreadystatechange = function () {
       const chart = document.getElementById("chart");
       chart.remove();
       Object.keys(productCodes).indexOf(token) != -1 ?
-        bakeDonut(productData, Object.keys(data), width, width * 0.5, document.body, rainbow, donutTitle) :
+        bakeDonut(productData, Object.keys(data).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
         token == "emptyDonut" ?
-          bakeDonut(terrSum, Object.keys(data), width, width * 0.5, document.body, rainbow, donutTitle) :
+          bakeDonut(terrSum, Object.keys(data).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
           token.length == 8 ?
             makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
             makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
