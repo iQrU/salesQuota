@@ -789,7 +789,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   const productVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
   const volumeFont = basicFont * 2.1;
   const volumeContent = "₩ " + wholeSum.toLocaleString();
-  productVolume.setAttribute("x", center.x + radius * 0.5), productVolume.setAttribute("y", center.y + titleFont * 17 / 15);
+  productVolume.setAttribute("x", center.x + radius * 0.5), productVolume.setAttribute("y", center.y + titleFont * 17 / 12);
   productVolume.setAttribute("class", "productVolume");
   productVolume.setAttribute("font-size", volumeFont);
   productVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`);
