@@ -750,18 +750,20 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       const previousVol = document.querySelector(`.legendVolume`);
       previousVol ? previousVol.remove() : null;
       if (tag == "total") {
-        prevBanner.setAttribute("font-size", basicFont * 3.2), prevBanner.setAttribute("y", center.y - basicFont * 2);
+        prevBanner.setAttribute("font-size", basicFont * 2.6);
+        prevBanner.setAttribute("x", center.x), prevBanner.setAttribute("y", center.y - basicFont * 2.5);
+        prevBanner.setAttribute("text-anchor", "middle");
       } else {
-        prevBanner.setAttribute("font-size", basicFont * 2), prevBanner.setAttribute("y", center.y - basicFont * 6);
+        prevBanner.setAttribute("font-size", basicFont * 1.4);
+        prevBanner.setAttribute("x", center.x - radius * 0.45), prevBanner.setAttribute("y", center.y - basicFont * 6.5);
+        prevBanner.setAttribute("text-anchor", "start");
         const legendVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
         const volumeFont = basicFont * 2.1;
         const volumeContent = "₩ " + itemValue.toLocaleString();
-        const volumeCipher = itemValue != 0 ? Math.floor(Math.log10(itemValue)) : 0;
-        const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
-        legendVolume.setAttribute("x", center.x + radius * 0.45 - volumeWidth), legendVolume.setAttribute("y", center.y - volumeFont);
+        legendVolume.setAttribute("x", center.x + radius * 0.5), legendVolume.setAttribute("y", center.y - volumeFont);
         legendVolume.setAttribute("class", "legendVolume");
-        legendVolume.setAttribute("font-size", volumeFont), legendVolume.setAttribute("font-style", "italic");
-        legendVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`), legendVolume.setAttribute("font-weight", "bold");
+        legendVolume.setAttribute("font-size", volumeFont);
+        legendVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`);
         legendVolume.innerHTML = volumeContent;
         donutTray.appendChild(legendVolume);  
       }
@@ -775,11 +777,11 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   donutTray.appendChild(hole);
 
   const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  const titleFont = basicFont * 3.2;
-  const titleWidth = title.length * titleFont * 17 / 30;
-  banner.setAttribute("x", center.x - titleWidth / 2), banner.setAttribute("y", center.y - basicFont * 2);
+  const titleFont = basicFont * 2.6;
+  banner.setAttribute("x", center.x), banner.setAttribute("y", center.y - basicFont * 2.5);
+  banner.setAttribute("text-anchor", "middle");
   banner.setAttribute("class", "banner");
-  banner.setAttribute("font-size", titleFont), banner.setAttribute("font-style", "italic");
+  banner.setAttribute("font-size", titleFont);
   banner.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`);
   banner.innerHTML = title;
   donutTray.appendChild(banner);
@@ -787,12 +789,10 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   const productVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
   const volumeFont = basicFont * 2.1;
   const volumeContent = "₩ " + wholeSum.toLocaleString();
-  const volumeCipher = Math.floor(Math.log10(wholeSum));
-  const volumeWidth = (volumeCipher + 3 + Math.floor(volumeCipher / 3) / 2) * volumeFont * 17 / 30;
-  productVolume.setAttribute("x", center.x + radius * 0.45 - volumeWidth);
-  productVolume.setAttribute("y", center.y + titleFont * 17 / 15);
-  productVolume.setAttribute("font-size", volumeFont), productVolume.setAttribute("font-style", "italic");
-  productVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`), productVolume.setAttribute("font-weight", "bold");
+  productVolume.setAttribute("x", center.x + radius * 0.5), productVolume.setAttribute("y", center.y + titleFont * 17 / 15);
+  productVolume.setAttribute("class", "productVolume");
+  productVolume.setAttribute("font-size", volumeFont);
+  productVolume.setAttribute("fill", `${productColor[title] ? productColor[title] : "indigo"}`);
   productVolume.innerHTML = volumeContent;
   donutTray.appendChild(productVolume);
 
