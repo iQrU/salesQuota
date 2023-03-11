@@ -682,7 +682,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
     if (share == 1) {
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", `${center.x}`), circle.setAttribute("cy", `${center.y}`), circle.setAttribute("r", `${radius}`);
-      circle.setAttribute("fill", color), circle.setAttribute("class", `${legendSet[i]}`);
+      circle.setAttribute("fill", color), circle.setAttribute("class", `${item}`);
       donutTray.appendChild(circle);
     } else if (share != 0) {
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -691,7 +691,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       endX = center.x + radius * Math.sin(portion), endY = center.y - radius * Math.cos(portion);
 
       path.setAttribute("fill", color), path.setAttribute("stroke", "white");
-      path.setAttribute("class", `${legendSet[i]}`);
+      path.setAttribute("class", `${item}`);
       path.setAttribute("d", `M ${center.x} ${center.y} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`);
       startX = endX, startY = endY;
       donutTray.appendChild(path);
@@ -704,7 +704,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
       percent.setAttribute("x", center.x - cipherWidth / 2 + 0.78 * radius * Math.sin(posiRad)), percent.setAttribute("y", center.y + percentFont * 17 / 60 - 0.78 * radius * Math.cos(posiRad));
       percent.setAttribute("font-size", percentFont);
-      percent.setAttribute("class", `${legendSet[i]}`);
+      percent.setAttribute("class", `${item}tag`);
       color == "purple" || color == "blue" || color == "green" || color == "brown" ? percent.setAttribute("fill", "white") : null;
       percent.innerHTML = innerText;
       donutTray.appendChild(percent);
@@ -716,38 +716,50 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
     legendMark.setAttribute("x", positionX - trayWidth / 65), legendMark.setAttribute("width", trayWidth / 55);
     legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", trayWidth / 55);
     legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
-    legendMark.setAttribute("fill", color), legendMark.setAttribute("class", `${legendSet[i]}`);
+    legendMark.setAttribute("fill", color), legendMark.setAttribute("class", `${item}`);
     donutTray.appendChild(legendMark);
 
     const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
     legend.setAttribute("x", positionX + trayWidth * 0.01), legend.setAttribute("y", positionY + trayHeight * 0.03);
-    legend.setAttribute("font-size", basicFont * 1.8), legend.setAttribute("class", `legend ${legendSet[i]}`);
+    legend.setAttribute("font-size", basicFont * 1.8), legend.setAttribute("class", `legend ${item}`);
     legend.innerHTML = legendSet[i];
 
     legend.onclick = function () {
-      if (legendSet[i] != tag) {
+      if (item != tag) {
         for (let j = 0; j < legendSet.length; j++) {
+          const pieTag = document.querySelector(`.${legendSet[j]}tag`);
+          if (pieTag) {
+            pieTag.classList.value = `legend ${legendSet[j]}tag`;
+            i != j ? pieTag.classList.toggle('hide') : pieTag.classList.toggle('bold');  
+          }
+
           const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
           for (let k = 0; k < legendPie.length; k++) {
             legendPie[k].classList.value = `legend ${legendSet[j]}`;
-            i != j ? legendPie[k].classList.toggle('dimmer') : null;
-            i == j ? legendPie[k].classList.toggle('bold') : null;
+            i != j ? legendPie[k].classList.toggle('dimmer') : legendPie[k].classList.toggle('bold');
           }
         }
-        tag = legendSet[i];
+        tag = item;
       } else {
         for (let j = 0; j < legendSet.length; j++) {
+          const pieTag = document.querySelector(`.${legendSet[j]}tag`);
+          pieTag ? pieTag.classList.toggle('hide') : null;
           const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
           for (let k = 0; k < legendPie.length; k++) {
             legendPie[k].classList.toggle('dimmer');
           }
         }
-        const thisPie = document.querySelectorAll(`.${legendSet[i]}`);
+
+        const thisPieTag = document.querySelector(`.${item}tag`);
+        if (thisPieTag) {
+          thisPieTag.classList.toggle('hide'), thisPieTag.classList.toggle('bold');
+        }
+        const thisPie = document.querySelectorAll(`.${item}`);
         for (let j = 0; j < thisPie.length; j++) {
           thisPie[j].classList.toggle('dimmer');
           thisPie[j].classList.toggle('bold');
         }
-        thisPie[0].classList.value == `legend ${legendSet[i]}` ? tag = "total" : null;
+        thisPie[0].classList.value == `legend ${item}` ? tag = "total" : null;
       }
 
       const prevBanner = document.querySelector(`.banner`);
