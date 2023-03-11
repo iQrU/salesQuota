@@ -678,7 +678,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
     if (share == 1) {
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", `${center.x}`), circle.setAttribute("cy", `${center.y}`), circle.setAttribute("r", `${radius}`);
-      circle.setAttribute("fill", color);
+      circle.setAttribute("fill", color), circle.setAttribute("class", `${legendSet[i]}`);
       donutTray.appendChild(circle);
     } else if (share != 0) {
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
