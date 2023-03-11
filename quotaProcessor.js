@@ -609,9 +609,10 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
   }
 
   const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+  const legendInterval = legendUnit < 5 ? 6 : 8;
   let tag;
   for (let i = 0; i < legendSet.length; i++) {
-    positionX = width / 2 * (1 - legendUnit / 8) + width / 8 * (i % legendUnit + 0.3);
+    positionX = width / 2 * (1 - legendUnit / legendInterval) + width / legendInterval * (i % legendUnit + 0.3);
     positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
     const item = legendSet[i];
     const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
