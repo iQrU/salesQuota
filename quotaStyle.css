@@ -112,6 +112,27 @@ rect {
   cursor: pointer;
 }
 
+.legendVolume {
+  text-anchor: end;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.productVolume {
+  text-anchor: end;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-style: italic;
+  font-weight: bold;
+  opacity: 80%;
+}
+
+.banner {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-style: italic;
+  font-weight: bold;
+}
+
 .dim {
   opacity: 50%;
 }
