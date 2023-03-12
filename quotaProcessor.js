@@ -691,7 +691,7 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
     wholeSum += dataDough[item] ? dataDough[item] : 0;
   }
 
-  const unitNum = legendSet.length > 7 ? Math.ceil(legendSet.length / Math.ceil(legendSet.length / 10)) : legendSet.length;
+  const unitNum = legendSet.length > 7 ? Math.ceil(legendSet.length / Math.ceil(legendSet.length / 7)) : legendSet.length;
   const unitCol = Math.ceil(legendSet.length / unitNum);
   let positionX, positionY, tag;
   for (let i = 0; i < legendSet.length; i++) {
