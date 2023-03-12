@@ -691,7 +691,8 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
     wholeSum += dataDough[item] ? dataDough[item] : 0;
   }
 
-  const unitNum = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+  const unitNum = legendSet.length > 7 ? Math.ceil(legendSet.length / Math.ceil(legendSet.length / 10)) : legendSet.length;
+  const unitCol = Math.ceil(legendSet.length / unitNum);
   let positionX, positionY, tag;
   for (let i = 0; i < legendSet.length; i++) {
     const item = legendSet[i], itemValue = dataDough[item] ? dataDough[item] : 0;
@@ -729,8 +730,8 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
       donutTray.appendChild(percent);
     }
 
-    positionX = trayWidth * 3 / 5 + trayWidth / 7.5 * Math.floor(i / unitNum);
-    positionY = trayHeight / 2 + basicFont * 0.9 - trayHeight * 0.09 * (unitNum / 2 - i % unitNum);
+    positionX = trayWidth * 3 / 5 + trayWidth / 7.5 * Math.floor(i % unitCol);
+    positionY = trayHeight / 2 + basicFont * 0.9 - trayHeight * 0.09 * (unitNum / 2 - Math.floor(i / unitCol));
     const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     legendMark.setAttribute("x", positionX - trayWidth / 65), legendMark.setAttribute("width", trayWidth / 55);
     legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", trayWidth / 55);
