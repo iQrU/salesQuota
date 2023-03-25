@@ -195,7 +195,7 @@ function throwCoverBalls(diameterArray, data, teamProduct, palette) {
     const ballDiv = document.createElement("div");
     const dist = selector[i].innerText;
     ballDiv.setAttribute("class", "ballDiv");
-    ballDiv.setAttribute("style", `width:${diameter}px; height:${diameter}px; --w:${basicFont * 1.4}px; --x:${positionArray[i][0] * ratio}px; --y:${positionArray[i][1] * ratio}px; --z:${Math.random() * 3 + 7}s`);
+    ballDiv.setAttribute("style", `width:${diameter}px; height:${diameter}px; --w:${basicFont * 1.5}px; --x:${positionArray[i][0] * ratio}px; --y:${positionArray[i][1] * ratio}px; --z:${Math.random() * 3 + 7}s`);
     ballDiv.innerHTML = `${dist}:<br>₩ ${diameterArray[i][1].toLocaleString()}<br>(${(Math.pow(diameterArray[i][0], 2) * 100).toFixed(1)}%)`;
 
     ballDiv.addEventListener("click", function () {
