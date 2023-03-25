@@ -23,7 +23,7 @@ xhr.onreadystatechange = function () {
     const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
     const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
     let width = document.documentElement.clientWidth;
-    token = dist;
+    //token = dist;
     //makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     productCodes = pairProductCode(dataArray, "제품", "mpg");
 
@@ -82,9 +82,11 @@ xhr.onreadystatechange = function () {
         bakeDonut(productData, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
         token == "emptyDonut" ?
           bakeDonut(terrSum, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
-          token.length == 8 ?
-            makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-            makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+          token == "coverPage" ?
+            throwCoverBalls(diameterArray, data, teamProduct, palette) :
+            token.length == 8 ?
+              makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
+              makeBarChart(data[token], teamProduct[token], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     });
   }
 }
@@ -157,6 +159,7 @@ function summerizeData(dataArray, criteria1, criteria2, criteria3) {
 function throwCoverBalls(diameterArray, data, teamProduct, palette) {
   const menuBar = document.getElementById("menuBar");
   menuBar.style.display = "none";
+  token = "coverPage";
 
   const ballCount = diameterArray.length;
   const rowCount = Math.round(window.matchMedia('(orientation: portrait)').matches ? Math.sqrt(ballCount * 3) / 2 : Math.sqrt(ballCount / 3) * 2);
@@ -195,10 +198,12 @@ function throwCoverBalls(diameterArray, data, teamProduct, palette) {
     ballDiv.setAttribute("style", `width:${diameter}px; height:${diameter}px; --w:${basicFont * 1.2}px; --x:${positionArray[i][0] * ratio}px; --y:${positionArray[i][1] * ratio}px; --z:${Math.random() * 3 + 7}s`);
     ballDiv.innerHTML = `${dist}:<br>₩ ${diameterArray[i][1].toLocaleString()}<br>(${(Math.pow(diameterArray[i][0], 2) * 100).toFixed(1)}%)`;
 
-    ballDiv.addEventListener("click", function() {
+    ballDiv.addEventListener("click", function () {
       ballBox.remove();
       menuBar.style.display = "block";
+      token = dist;
       makeBarChart(data[dist], teamProduct[dist], trayWidth, trayWidth * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+      console.log(token);
     });
     ballBox.appendChild(ballDiv);
   }
