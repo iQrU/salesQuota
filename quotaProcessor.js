@@ -12,7 +12,7 @@ xhr.onreadystatechange = function () {
   if (this.readyState == 4 && this.status == 200) {
     const dataArray = processCsv(this.responseText);
     let dist = selector[0].innerHTML;
-    let data = summerizeData(dataArray, "Dist", "Terr", "제품")[dist];
+    const data = summerizeData(dataArray, "Dist", "Terr", "제품");
     const terrData = summerizeData(dataArray, "Terr", "제품");
     const teamProduct = {
       CORE2: ["ELIQUIS", "CIBINQO", "XELJANZ", "XELJANZ 10", "ENBREL"],
@@ -24,10 +24,20 @@ xhr.onreadystatechange = function () {
     const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
     let width = document.documentElement.clientWidth;
     token = dist;
-    makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+    //makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     productCodes = pairProductCode(dataArray, "제품", "mpg");
 
+    let distSum = {}, total = 0;
     for (let i = 0; i < selector.length; i++) {
+      const district = selector[i].innerText;
+      distSum[district] = 0;
+      for (let territory in data[district]) {
+        for (let product in data[district][territory]) {
+          distSum[district] += data[district][territory][product][12];
+        }
+      }
+      total += distSum[district];
+
       selector[i].addEventListener("click", function () {
         const checkbox = document.querySelector(`.checkbox`);
         checkbox.setAttribute("class", "checkbox");
@@ -41,18 +51,27 @@ xhr.onreadystatechange = function () {
         allProductDiv ? allProductDiv.remove() : null;
         dist = selector[i].innerText;
         token = dist;
-        data = summerizeData(dataArray, "Dist", "Terr", "제품")[dist];
-        makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+        makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
         tag.innerHTML = "ratio";
       });
     }
+
+    let diameterArray = [];
+    for (let i = 0; i < selector.length; i++) {
+      const district = selector[i].innerText;
+      const amount = distSum[district];
+      const shareRoot = Math.sqrt(amount / total);
+      diameterArray.push([shareRoot, amount]);
+    }
+
+    throwCoverBalls(diameterArray, data, teamProduct, palette);
 
     checkbox.onchange = function () {
       const chart = document.getElementById("chart");
       chart.remove();
       token.length == 8 ?
         makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-        makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+        makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     }
 
     window.addEventListener("resize", function () {
@@ -60,12 +79,12 @@ xhr.onreadystatechange = function () {
       const chart = document.getElementById("chart");
       chart.remove();
       Object.keys(productCodes).indexOf(token) != -1 ?
-        bakeDonut(productData, Object.keys(data).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
+        bakeDonut(productData, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
         token == "emptyDonut" ?
-          bakeDonut(terrSum, Object.keys(data).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
+          bakeDonut(terrSum, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
           token.length == 8 ?
             makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-            makeBarChart(data, teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+            makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     });
   }
 }
@@ -133,6 +152,57 @@ function summerizeData(dataArray, criteria1, criteria2, criteria3) {
     }
   }
   return summeryObj;
+}
+
+function throwCoverBalls(diameterArray, data, teamProduct, palette) {
+  const menuBar = document.getElementById("menuBar");
+  menuBar.style.display = "none";
+
+  const ballCount = diameterArray.length;
+  const rowCount = Math.round(window.matchMedia('(orientation: portrait)').matches ? Math.sqrt(ballCount * 3) / 2 : Math.sqrt(ballCount / 3) * 2);
+  let positionArray = [], max = 0, stackX = 0, stackY = 0;
+
+  for (let i = 0; i < ballCount; i++) {
+    let x = 0, y = 0;
+    if (i % rowCount != 0) {
+      x = positionArray[i - 1][0] + diameterArray[i - 1][0];
+    } else {
+      let sum = 0;
+      for (let j = 0; j < rowCount; j++) {
+        sum += diameterArray[i + j][0];
+      }
+      sum > max ? max = sum : null;
+    }
+    const lineSeq = Math.floor(i / rowCount);
+    i % 2 == 1 && lineSeq == 0 ? y = diameterArray[i - 1][0] / 4 : null;
+    if (lineSeq != 0) {
+      y = positionArray[i - rowCount][1] + diameterArray[i - rowCount][0];
+    }
+    positionArray.push([x, y]);
+  }
+
+  const ratio = trayWidth / max / (window.matchMedia('(orientation: portrait)').matches ? 1 : 1.6);
+  const basicFont = trayWidth * 0.01;
+  const ballBox = document.createElement("div");
+  ballBox.setAttribute("id", "chart");
+  document.body.appendChild(ballBox);
+
+  for (let i = 0; i < positionArray.length; i++) {
+    const diameter = diameterArray[i][0] * ratio;
+    const ballDiv = document.createElement("div");
+    const dist = selector[i].innerText;
+    ballDiv.setAttribute("class", "ballDiv");
+    ballDiv.setAttribute("style", `width:${diameter}px; height:${diameter}px; --w:${basicFont * 1.2}px; --x:${positionArray[i][0] * ratio}px; --y:${positionArray[i][1] * ratio}px; --z:${Math.random() * 3 + 7}s`);
+    ballDiv.innerHTML = `${dist}:<br>₩ ${diameterArray[i][1].toLocaleString()}<br>(${(Math.pow(diameterArray[i][0], 2) * 100).toFixed(1)}%)`;
+
+    ballDiv.addEventListener("click", function() {
+      ballBox.remove();
+      menuBar.style.display = "block";
+      makeBarChart(data[dist], teamProduct[dist], trayWidth, trayWidth * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+    });
+    ballBox.appendChild(ballDiv);
+  }
+
 }
 
 function pairProductCode(dataArray, productColumn, codeColumn) {
