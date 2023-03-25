@@ -109,6 +109,7 @@ rect {
 }
 
 .legend {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
   cursor: pointer;
 }
 
@@ -215,4 +216,32 @@ rect {
   border-color: var(--color);
   background-color: var(--color);
   opacity: 1;
+}
+
+.ballDiv {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 25px rgba(85, 107, 47, 0.349);
+  border-radius: 50%;
+  margin: 5px;
+  color: darkolivegreen;
+  font-style: italic;
+  font-size: var(--w);
+  font-weight: bold;
+  animation: animate var(--z) ease-in-out infinite;
+  cursor: pointer;
+}
+@keyframes animate {
+  0%, 100%
+  {
+    transform: translateY(-20px);
+  }
+  50%
+  {
+    transform: translateY(20px);
+  }
 }
