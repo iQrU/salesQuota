@@ -44,6 +44,7 @@ xhr.onreadystatechange = function () {
       total += distSum[district];
 
       selector[i].addEventListener("click", function () {
+        const checkbox = document.querySelector(`.checkbox`);
         checkbox.setAttribute("class", "checkbox");
         for (let j = 0; j < selector.length; j++) {
           selector[j].removeAttribute("class", "selected");
@@ -89,7 +90,7 @@ xhr.onreadystatechange = function () {
         token == "emptyDonut" ?
           bakeDonut(terrSum, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
           token == "coverPage" ?
-            throwCoverBalls(diameterArray, data, teamProduct, palette) :
+            throwCoverBalls(diameterArray) :
             token.length == 8 ?
               makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
               makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
