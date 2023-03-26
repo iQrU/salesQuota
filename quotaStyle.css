@@ -231,7 +231,7 @@ rect {
   color: darkolivegreen;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-style: italic;
-  font-size: 0.7em;
+  font-size: 0.72em;
   font-weight: bold;
   animation: animate var(--z) ease-in-out infinite;
   cursor: pointer;
