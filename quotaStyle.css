@@ -225,10 +225,10 @@ rect {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: inset 0 0 25px rgba(85, 107, 47, 0.349);
+  box-shadow: inset 0 0 25px rgba(103, 49, 128, 0.349);
   border-radius: 50%;
   margin: 5px;
-  color: darkolivegreen;
+  color: #5b0eeb;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-style: italic;
   font-size: 0.72em;
