@@ -3,7 +3,7 @@
 const selector = document.querySelectorAll('.district');
 selector[0].setAttribute("class", "selected");
 const checkbox = document.getElementById("checkbox");
-let token, productCodes, donutTitle, trayWidth = document.documentElement.clientWidth;
+let firstGrade, token, productCodes, donutTitle, trayWidth = document.documentElement.clientWidth;
 let productData = {}, terrSum = {};
 const productCodeSet = { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand", BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" };
 
@@ -23,8 +23,13 @@ xhr.onreadystatechange = function () {
     const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
     const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
     let width = document.documentElement.clientWidth;
-    //token = dist;
-    //makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+    firstGrade = function () {
+      dist = token;
+      showClicSel(dist);
+      const checkContainer = document.querySelector(`.checkbox`);
+      checkContainer.setAttribute("class", "checkbox");
+      makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+    }
     productCodes = pairProductCode(dataArray, "제품", "mpg");
 
     let distSum = {}, total = 0;
@@ -39,14 +44,13 @@ xhr.onreadystatechange = function () {
       total += distSum[district];
 
       selector[i].addEventListener("click", function () {
-        const checkbox = document.querySelector(`.checkbox`);
         checkbox.setAttribute("class", "checkbox");
         for (let j = 0; j < selector.length; j++) {
           selector[j].removeAttribute("class", "selected");
         }
         selector[i].setAttribute("class", "selected");
         const chart = document.getElementById("chart");
-        chart.remove();
+        chart ? chart.remove() : null;
         const allProductDiv = document.getElementById("subMenuDiv");
         allProductDiv ? allProductDiv.remove() : null;
         dist = selector[i].innerText;
@@ -64,6 +68,8 @@ xhr.onreadystatechange = function () {
       diameterArray.push([shareRoot, amount]);
     }
 
+    const checkContainer = document.querySelector(`.checkbox`);
+    checkContainer.setAttribute("class", "checkbox hidden");
     throwCoverBalls(diameterArray, data, teamProduct, palette);
 
     checkbox.onchange = function () {
@@ -77,7 +83,7 @@ xhr.onreadystatechange = function () {
     window.addEventListener("resize", function () {
       width = document.documentElement.clientWidth, trayWidth = width;
       const chart = document.getElementById("chart");
-      chart.remove();
+      chart ? chart.remove() : null;
       Object.keys(productCodes).indexOf(token) != -1 ?
         bakeDonut(productData, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
         token == "emptyDonut" ?
@@ -85,8 +91,8 @@ xhr.onreadystatechange = function () {
           token == "coverPage" ?
             throwCoverBalls(diameterArray, data, teamProduct, palette) :
             token.length == 8 ?
-              makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-              makeBarChart(data[token], teamProduct[token], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+              makeLineChart(terrData[dist], Object.keys(terrData[dist]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
+              makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     });
   }
 }
@@ -156,9 +162,11 @@ function summerizeData(dataArray, criteria1, criteria2, criteria3) {
   return summeryObj;
 }
 
-function throwCoverBalls(diameterArray, data, teamProduct, palette) {
+function throwCoverBalls(diameterArray) {
   const menuBar = document.getElementById("menuBar");
   menuBar.style.display = "none";
+  //const checkbox = document.querySelector(`.checkbox`);
+  //checkbox.setAttribute("class", "checkbox hidden");
   token = "coverPage";
 
   const ballCount = diameterArray.length;
@@ -202,12 +210,22 @@ function throwCoverBalls(diameterArray, data, teamProduct, palette) {
       ballBox.remove();
       menuBar.style.display = "block";
       token = dist;
-      makeBarChart(data[dist], teamProduct[dist], trayWidth, trayWidth * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+      firstGrade();
       console.log(token);
     });
     ballBox.appendChild(ballDiv);
   }
 
+}
+
+function showClicSel(dist) {
+  let distArray = [];
+  for (let i = 0; i < selector.length; i++) {
+    selector[i].removeAttribute("class", "selected");
+    distArray.push(selector[i].innerText);
+  }
+  const distIdx = distArray.indexOf(dist);
+  selector[distIdx].setAttribute("class", "selected");
 }
 
 function pairProductCode(dataArray, productColumn, codeColumn) {
