@@ -84,7 +84,7 @@ xhr.onreadystatechange = function () {
     window.addEventListener("resize", function () {
       width = document.documentElement.clientWidth, trayWidth = width;
       const chart = document.getElementById("chart");
-      chart ? chart.remove() : null;
+      chart.remove();
       Object.keys(productCodes).indexOf(token) != -1 ?
         bakeDonut(productData, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
         token == "emptyDonut" ?
