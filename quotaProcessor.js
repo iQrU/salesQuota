@@ -91,7 +91,7 @@ xhr.onreadystatechange = function () {
           token == "coverPage" ?
             throwCoverBalls(diameterArray, data, teamProduct, palette) :
             token.length == 8 ?
-              makeLineChart(terrData[dist], Object.keys(terrData[dist]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
+              makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
               makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     });
   }
