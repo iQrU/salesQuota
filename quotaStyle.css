@@ -189,6 +189,28 @@ rect {
   opacity: 1;
 }
 
+.groupItem {
+  margin: 2px 5px;
+  padding: 0 5px;
+  border: 0.15rem solid var(--color);
+  border-radius: 6px;
+  color: var(--color);
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.groupItem:hover {
+  opacity: 1;
+}
+
+.groupItem.checked {
+  color: white;
+  border-color: var(--color);
+  background-color: var(--color);
+  opacity: 1;
+}
+
 .active {
   color: white;
   border-color: var(--color);
@@ -200,7 +222,7 @@ rect {
   margin: 2px 5px;
   padding: 0 5px;
   border: 0.15rem solid var(--color);
-  border-radius: 10px;
+  border-radius: 6px;
   color: var(--color);
   font-size: 0.8rem;
   cursor: pointer;
@@ -229,7 +251,6 @@ rect {
   border-radius: 50%;
   margin: 5px;
   color: #5b0eeb;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-style: italic;
   font-size: 0.72em;
   font-weight: bold;
