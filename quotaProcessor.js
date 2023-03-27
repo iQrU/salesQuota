@@ -452,6 +452,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
 
     legend.addEventListener("click", function () {
       token = legendSet[i];
+      productData = {};
       const chart = document.getElementById("chart");
       chart.remove();
 
