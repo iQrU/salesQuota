@@ -537,7 +537,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           for (let j = 0; j < groupItems.length; j++) {
             const groupItem = groupItems[j];
             const groupUnit = groupItem.innerText;
-            productCodeSet[dist][codeSet] == groupUnit ? groupItem.classList.value = "groupItem active" : groupItem.classList.value = "groupItem";
+            productCodeSet[dist][codeSet] == groupUnit ? groupItem.classList.value = "groupItem checked" : groupItem.classList.value = "groupItem";
           }
           let title;
           productSet.length == 1 ?
