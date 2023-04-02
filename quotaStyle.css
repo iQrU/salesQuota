@@ -265,6 +265,6 @@ rect {
   }
   50%
   {
-    transform: translateY(20px);
+    transform: translateY(var(--v));
   }
 }
