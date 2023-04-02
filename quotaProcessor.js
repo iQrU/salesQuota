@@ -205,6 +205,7 @@ function throwCoverBalls(diameterArray) {
 
   const ratio = trayWidth / max / (window.matchMedia('(orientation: portrait)').matches ? 1 : 1.7);
   const basicFont = trayWidth * 0.01;
+  const amplitude = window.matchMedia('(orientation: portrait)').matches ? trayWidth / 10 : trayWidth / 20;
   const ballBox = document.createElement("div");
   ballBox.setAttribute("id", "chart");
   document.body.appendChild(ballBox);
@@ -214,7 +215,7 @@ function throwCoverBalls(diameterArray) {
     const ballDiv = document.createElement("div");
     const dist = selector[i].innerText;
     ballDiv.setAttribute("class", "ballDiv");
-    ballDiv.setAttribute("style", `width:${diameter}px; height:${diameter}px; --w:${basicFont * 1.5}px; --x:${positionArray[i][0] * ratio}px; --y:${positionArray[i][1] * ratio}px; --z:${Math.random() * 3 + 7}s`);
+    ballDiv.setAttribute("style", `width:${diameter}px; height:${diameter}px; --v:${amplitude}px; --w:${basicFont * 1.5}px; --x:${positionArray[i][0] * ratio}px; --y:${positionArray[i][1] * ratio}px; --z:${Math.random() * 3 + 7}s`);
     ballDiv.innerHTML = `${dist}:<br>₩${diameterArray[i][1].toLocaleString()}<br>(${(Math.pow(diameterArray[i][0], 2) * 100).toFixed(1)}%)`;
 
     ballDiv.addEventListener("click", function () {
