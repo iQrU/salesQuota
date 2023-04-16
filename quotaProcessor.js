@@ -3,7 +3,7 @@
 const selector = document.querySelectorAll('.district');
 selector[0].setAttribute("class", "selected");
 const checkbox = document.getElementById("checkbox");
-let firstGrade, token, productCodes, donutTitle, trayWidth = document.documentElement.clientWidth;
+let firstGrade, showRecord, token, productCodes, history, donutTitle, trayWidth = document.documentElement.clientWidth;
 let productData = {}, terrSum = {};
 const productCodeSet = {
   CORE2: { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand" },
@@ -12,13 +12,23 @@ const productCodeSet = {
   CORE4: { B04XEL: "RA portfolio", BAVBESIBRINL185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" }
 };
 
+const historyCall = new XMLHttpRequest();
+historyCall.onreadystatechange = function () {
+  if (this.readyState == 4 && this.status == 200) {
+    const dataArray = processCsv(this.responseText);
+    history = summerizeData(dataArray, 0, "terr", "product");
+  }
+};
+historyCall.open("GET", "/data/SRA_2022.csv", false);
+historyCall.send();
+
 const xhr = new XMLHttpRequest();
 xhr.onreadystatechange = function () {
   if (this.readyState == 4 && this.status == 200) {
     const dataArray = processCsv(this.responseText);
     let dist = selector[0].innerHTML;
-    const data = summerizeData(dataArray, "Dist", "Terr", "제품");
-    const terrData = summerizeData(dataArray, "Terr", "제품");
+    const data = summerizeData(dataArray, 23, "Dist", "Terr", "제품");
+    const terrData = summerizeData(dataArray, 23, "Terr", "제품");
     const teamProduct = {
       CORE2: ["ELIQUIS", "CIBINQO", "XELJANZ", "XELJANZ 10", "ENBREL"],
       CORE1: ["BAVENCIO", "BESPONSA", "CRESEMBA", "ERAXIS", "IBRANCE", "INLYTA", "LORVIQUA", "PRECEDEX", "SUTENE", "TYGACIL", "VFEND", "VIZIMPRO", "XALKORI", "ZYVOX"],
@@ -34,7 +44,24 @@ xhr.onreadystatechange = function () {
       makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
     }
     productCodes = pairProductCode(dataArray, "제품", "mpg");
-    console.log(productCodes);
+
+    let recordData = {};
+    for (let terr in history) {
+      recordData[terr] = {};
+      for (let product in terrData[terr]) {
+        recordData[terr][product] = {};
+        recordData[terr][product]["2022년"] = history[terr][product] ? history[terr][product].map(x => x * 1000) : terrData[terr][product];
+        recordData[terr][product]["Quota"] = terrData[terr][product];
+      }
+    }
+
+    showRecord = function (product) {
+      const chart = document.getElementById("chart");
+      chart.remove();
+      const footage = recordData[token][product];
+      const recordLine = showRecordLine(data[dist][token], recordData[token][product], product);
+      document.body.appendChild(recordLine);
+    }
 
     let distSum = {}, total = 0;
     for (let i = 0; i < selector.length; i++) {
@@ -107,19 +134,21 @@ function processCsv(csvText) {
   }
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
-    line = line.replace(/"\s?\d+[0-9, ]*"/g, replacer).replace(/,\s?-/, ",0").split(",");
+    line = line.replace(/"\s?-?\d+[0-9, ]*"/g, replacer).split(",");
+    line = line.map(x => x.replace(/[ ]/g, "") == "-" ? 0 : x);
     dataArray.push(line);
   }
   return dataArray;
 }
 
-function summerizeData(dataArray, criteria1, criteria2, criteria3) {
+function summerizeData(dataArray, headerRow, criteria1, criteria2, criteria3) {
   let summeryObj = {};
-  const header = dataArray[23];
+  const header = dataArray[headerRow];
+  const startColumn = header.indexOf("1P");
   const idx1 = header.indexOf(criteria1);
   const idx2 = header.indexOf(criteria2);
   const idx3 = header.indexOf(criteria3);
-  for (let i = 24; i < dataArray.length; i++) {
+  for (let i = headerRow + 1; i < dataArray.length; i++) {
     const item1 = dataArray[i][idx1];
     const item2 = dataArray[i][idx2];
     const item3 = dataArray[i][idx3];
@@ -128,34 +157,34 @@ function summerizeData(dataArray, criteria1, criteria2, criteria3) {
         if (summeryObj[item1][item2]) {
           if (criteria3) {
             if (summeryObj[item1][item2][item3]) {
-              summeryObj[item1][item2][item3] = dataArray[i].slice(6).map((x, y) => x * 1 + summeryObj[item1][item2][item3][y]);
+              summeryObj[item1][item2][item3] = dataArray[i].slice(startColumn).map((x, y) => x * 1 + summeryObj[item1][item2][item3][y]);
             } else {
-              summeryObj[item1][item2][item3] = dataArray[i].slice(6).map(x => x * 1);
+              summeryObj[item1][item2][item3] = dataArray[i].slice(startColumn).map(x => x * 1);
             }
           } else {
-            summeryObj[item1][item2] = dataArray[i].slice(6).map((x, y) => x * 1 + summeryObj[item1][item2][y]);
+            summeryObj[item1][item2] = dataArray[i].slice(startColumn).map((x, y) => x * 1 + summeryObj[item1][item2][y]);
           }
         } else if (criteria3) {
           summeryObj[item1][item2] = {};
-          summeryObj[item1][item2][item3] = dataArray[i].slice(6).map(x => x * 1);
+          summeryObj[item1][item2][item3] = dataArray[i].slice(startColumn).map(x => x * 1);
         } else {
-          summeryObj[item1][item2] = dataArray[i].slice(6).map(x => x * 1);
+          summeryObj[item1][item2] = dataArray[i].slice(startColumn).map(x => x * 1);
         }
       } else {
-        summeryObj[item1] = dataArray[i].slice(6).map((x, y) => x * 1 + summeryObj[item1][y]);
+        summeryObj[item1] = dataArray[i].slice(startColumn).map((x, y) => x * 1 + summeryObj[item1][y]);
       }
     } else {
       if (criteria2) {
         if (criteria3) {
           summeryObj[item1] = {};
           summeryObj[item1][item2] = {};
-          summeryObj[item1][item2][item3] = dataArray[i].slice(6).map(x => x * 1);
+          summeryObj[item1][item2][item3] = dataArray[i].slice(startColumn).map(x => x * 1);
         } else {
           summeryObj[item1] = {};
-          summeryObj[item1][item2] = dataArray[i].slice(6).map(x => x * 1);
+          summeryObj[item1][item2] = dataArray[i].slice(startColumn).map(x => x * 1);
         }
       } else {
-        summeryObj[item1] = dataArray[i].slice(6).map(x => x * 1);
+        summeryObj[item1] = dataArray[i].slice(startColumn).map(x => x * 1);
       }
     }
   }
@@ -223,7 +252,6 @@ function throwCoverBalls(diameterArray) {
       menuBar.style.display = "block";
       token = dist;
       firstGrade();
-      console.log(token);
     });
     ballBox.appendChild(ballDiv);
   }
@@ -611,7 +639,6 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           }
         };
       }
-      console.log(productGroup);
 
       for (let j = 0; j < dataKeys.length; j++) {
         data[dataKeys[j]][legendSet[i]] ?
@@ -795,7 +822,25 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
     chartArea.appendChild(legend);
 
     legend.addEventListener("click", function () {
-      if (tag != item) {
+      if (tag == item && token.substring(0, 5) == "CORE2") {
+        showRecord(item);
+      } else if (tag == item) {
+        banner.innerHTML = title;
+        banner.setAttribute("fill", "indigo");
+        if (checkbox.checked) {
+          const comment = document.getElementById("comment");
+          comment.setAttribute("fill", "indigo");
+        }
+
+        for (let j = 0; j < legendSet.length; j++) {
+          const legendClass = legendSet[j].replace(" ", "");
+          const graphAll = document.querySelectorAll(`.${legendClass}`);
+          for (let k = 0; k < graphAll.length; k++) {
+            graphAll[k].setAttribute("class", `${legendClass}`);
+          }
+        }
+        tag = "total";
+      } else {
         const productTitle = title.replace("PRODUCT", item);
         banner.innerHTML = productTitle;
         banner.setAttribute("fill", palette[item]);
@@ -818,25 +863,222 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
           }
         }
         tag = item;
-      } else {
-        banner.innerHTML = title;
-        banner.setAttribute("fill", "indigo");
-        if (checkbox.checked) {
-          const comment = document.getElementById("comment");
-          comment.setAttribute("fill", "indigo");
-        }
-
-        for (let j = 0; j < legendSet.length; j++) {
-          const legendClass = legendSet[j].replace(" ", "");
-          const graphAll = document.querySelectorAll(`.${legendClass}`);
-          for (let k = 0; k < graphAll.length; k++) {
-            graphAll[k].setAttribute("class", `${legendClass}`);
-          }
-        }
-        tag = "total";
       }
     });
   }
+}
+
+function showRecordLine(data, recordData, item) {
+
+  const chartArea = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
+  const width = document.documentElement.clientWidth;
+  const height = width / 2;
+  chartArea.setAttribute("width", width), chartArea.setAttribute("height", width / 2), chartArea.setAttribute("id", "chart");
+
+  const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  const basicFont = width * 0.01;
+  const titleFont = basicFont * 2.5;
+  banner.setAttribute("x", width / 2), banner.setAttribute("y", chartArea.height.baseVal.value / 20);
+  banner.setAttribute("font-size", titleFont), banner.setAttribute("font-style", "italic"), banner.setAttribute("text-anchor", "middle"), banner.setAttribute("fill", palette[item]);
+  banner.innerHTML = token + " " + item + " " + "FOOTPRINTS";
+  chartArea.appendChild(banner);
+
+  if (checkbox.checked) {
+    const comment = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    comment.setAttribute("x", width * 3 / 5), comment.setAttribute("y", chartArea.height.baseVal.value / 13);
+    comment.setAttribute("id", "comment");
+    comment.setAttribute("font-size", basicFont), comment.setAttribute("font-style", "italic"), comment.setAttribute("fill", palette[item]);
+    comment.innerHTML = "cumulated by month";
+    chartArea.appendChild(comment);
+  }
+
+  let max = 0;
+  for (let i in recordData) {
+    if (checkbox.checked) {
+      max = max > recordData[i][12] ? max : recordData[i][12];
+    } else {
+      for (let j = 0; j < 12; j++) {
+        max = max > recordData[i][j] ? max : recordData[i][j];
+      }
+    }
+  }
+  max < Math.pow(10, 5) ? max = Math.pow(10, 6) : null;
+
+  let unitNum = Math.pow(10, Math.floor(Math.log10(max)));
+  max / unitNum < 2 ? unitNum = unitNum / 4 : max / unitNum < 5 ? unitNum = unitNum / 2 : null;
+  const unitCipher = Math.floor(Math.log10(unitNum * 5));
+  const unit = Math.pow(10, unitCipher - (unitCipher % 3 == 0 ? 3 : unitCipher % 3));
+
+  const axisWidth = width * 0.05;
+  let unitPosition = 0;
+  for (let i = 0; i <= max / unitNum; i++) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    const vPosition = height * 0.87 - unitNum * i / max * height * 0.8;
+    i + 1 > max / unitNum ? unitPosition = vPosition - height * 0.045 : null;
+    line.setAttribute("x1", width * 0.04), line.setAttribute("x2", width * 0.97);
+    line.setAttribute("y1", vPosition), line.setAttribute("y2", vPosition);
+    line.setAttribute("stroke", i == 0 ? "black" : "purple"), line.setAttribute("stroke-width", 0.3);
+    chartArea.appendChild(line);
+
+    const axisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const axisVal = unitNum / unit * i;
+    axisLabel.setAttribute("x", axisWidth * 0.7), axisLabel.setAttribute("y", vPosition);
+    axisLabel.setAttribute("text-anchor", "end"), axisLabel.setAttribute("alignment-baseline", "middle");
+    axisLabel.setAttribute("font-size", basicFont), axisLabel.setAttribute("font-style", "italic");
+    axisLabel.innerHTML = `${axisVal.toLocaleString()}`;
+    chartArea.appendChild(axisLabel);
+  }
+  const unitSign = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  unitSign.setAttribute("x", 0), unitSign.setAttribute("y", unitPosition);
+  unitSign.innerHTML = `*unit: ${Math.log10(unit) == 6 ? "mil." : Math.log10(unit) == 9 ? "bil." : Math.log10(unit) == 3 ? "Kilo" : "??"}`;
+  unitSign.setAttribute("font-size", basicFont), unitSign.setAttribute("font-style", "italic"), unitSign.setAttribute("fill", "blue");
+  chartArea.appendChild(unitSign);
+
+  let medianX, positionX, positionY;
+  const interval = (width * 0.98 - axisWidth) / 12;
+  const monthArray = ["Dec.(preYr)", "Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov."];
+  const monthFont = basicFont * 1.3;
+  for (let i = 0; i < 12; i++) {
+    medianX = interval * i + axisWidth + interval / 3;
+    const month = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    month.setAttribute("x", medianX), month.setAttribute("y", height * 0.905);
+    month.setAttribute("font-size", monthFont), month.setAttribute("font-style", "italic"), month.setAttribute("text-anchor", "middle");
+    month.innerHTML = monthArray[i];
+    chartArea.appendChild(month);
+  }
+
+  const labelFont = basicFont * 1.2;
+  if (checkbox.checked) {
+    for (let i in recordData) {
+      const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const opacity = i == "2022년" ? 0.3 : 0.7;
+      let sum = 0, itemPath = "";
+
+      for (let j = 0; j < 12; j++) {
+        sum += recordData[i][j];
+        positionX = interval * j + axisWidth + interval / 3;
+        positionY = height * 0.87 - sum / max * height * 0.8;
+        itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        let labelContent = sum / unit;
+        if (labelContent >= max * 0.1 / unit) {
+          labelContent = parseInt(labelContent, 10);
+          label.setAttribute("x", positionX), label.setAttribute("y", positionY - height * 0.015);
+          label.setAttribute("font-size", labelFont), label.setAttribute("text-anchor", "middle");
+          label.innerHTML = labelContent.toLocaleString();
+          chartArea.appendChild(label);
+        }
+      }
+      itemLine.setAttribute("stroke", palette[item]), itemLine.setAttribute("stroke-opacity", opacity), itemLine.setAttribute("stroke-width", basicFont / 2);
+      itemLine.setAttribute("fill", "transparent"), itemLine.setAttribute("d", itemPath);
+      chartArea.appendChild(itemLine);
+
+      sum = 0;
+      for (let j = 0; j < 12; j++) {
+        sum += recordData[i][j];
+        positionX = interval * j + axisWidth + interval / 3;
+        positionY = height * 0.87 - sum / max * height * 0.8;
+
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", positionX), dot.setAttribute("cy", positionY), dot.setAttribute("r", basicFont * 0.5);
+        dot.setAttribute("stroke", palette[item]), dot.setAttribute("stroke-opacity", opacity + 0.3), dot.setAttribute("stroke-width", basicFont * 0.2), dot.setAttribute("fill", "white");
+        chartArea.appendChild(dot);
+      }
+
+      const introLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      const vPosition = i == "2022년" ? height * 0.8 : height * 0.75;
+      introLine.setAttribute("x1", width * 0.85), introLine.setAttribute("x2", width * 0.9);
+      introLine.setAttribute("y1", vPosition), introLine.setAttribute("y2", vPosition);
+      introLine.setAttribute("stroke", palette[item]), introLine.setAttribute("stroke-opacity", opacity), introLine.setAttribute("stroke-width", basicFont / 2);
+      chartArea.appendChild(introLine);
+      const introDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      introDot.setAttribute("cx", width * 0.875), introDot.setAttribute("cy", vPosition), introDot.setAttribute("r", basicFont * 0.5);
+      introDot.setAttribute("stroke", palette[item]), introDot.setAttribute("stroke-opacity", opacity + 0.3), introDot.setAttribute("stroke-width", basicFont * 0.2), introDot.setAttribute("fill", "white");
+      chartArea.appendChild(introDot);
+      const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      introLabel.setAttribute("x", width * 0.91), introLabel.setAttribute("y", vPosition);
+      introLabel.setAttribute("font-size", basicFont), introLabel.setAttribute("alignment-baseline", "middle");
+      introLabel.innerHTML = i;
+      chartArea.appendChild(introLabel);
+    }
+
+  } else {
+    const recordSet = Object.keys(recordData);
+    for (let i = 0; i < recordSet.length; i++) {
+      const recordItem = recordSet[i];
+      const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const opacity = recordItem == "2022년" ? 0.2 : 0.6;
+      const fontColor = recordItem == "2022년" ? "grey" : palette[item];
+      let itemPath = "";
+
+      for (let j = 0; j < 12; j++) {
+        positionX = interval * j + axisWidth + interval / 3;
+        positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
+        itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        let labelContent = recordData[recordItem][j] / unit;
+        if (labelContent >= 5 || labelContent * unit >= max / 10) {
+          labelContent = parseInt(labelContent, 10);
+          label.setAttribute("x", positionX), label.setAttribute("y", positionY);
+          label.setAttribute("font-size", labelFont), label.setAttribute("fill", fontColor), label.setAttribute("text-anchor", "middle");
+          label.innerHTML = labelContent.toLocaleString();
+          chartArea.appendChild(label);
+        }
+      }
+      itemPath += ` V ${height * 0.87} H ${axisWidth + interval / 3} Z`;
+      itemLine.setAttribute("stroke", "transparent"), itemLine.setAttribute("fill", palette[item]), itemLine.setAttribute("fill-opacity", opacity);
+      itemLine.setAttribute("d", itemPath);
+      chartArea.appendChild(itemLine);
+
+      const intro = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      const hPosition = recordItem == "2022년" ? width * 0.91 : width * 0.85;
+      intro.setAttribute("x", hPosition), intro.setAttribute("width", width / 60);
+      intro.setAttribute("y", height / 50), intro.setAttribute("height", width / 100);
+      intro.setAttribute("fill", palette[item]), intro.setAttribute("fill-opacity", opacity);
+      chartArea.appendChild(intro);
+      const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      introLabel.setAttribute("x", hPosition + width / 50), introLabel.setAttribute("y", height * 0.03);
+      introLabel.setAttribute("font-size", basicFont), introLabel.setAttribute("fill", fontColor), introLabel.setAttribute("alignment-baseline", "middle");
+      introLabel.innerHTML = recordItem;
+      chartArea.appendChild(introLabel);
+    }
+  }
+
+  const legendSet = Object.keys(data);
+  const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
+  const legendInterval = legendUnit < 5 ? 6 : 8;
+  let tag = item;
+  for (let i = 0; i < legendSet.length; i++) {
+    positionX = width / 2 * (1 - legendUnit / legendInterval) + width / legendInterval * (i % legendUnit + 0.3);
+    positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
+    const legendItem = legendSet[i];
+    const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
+    legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
+    legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
+    legendMark.setAttribute("fill", palette[legendItem]);
+    chartArea.appendChild(legendMark);
+
+    const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
+    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend");
+    legend.innerHTML = legendItem;
+    chartArea.appendChild(legend);
+
+    legend.addEventListener("click", function () {
+      if (legendItem == tag) {
+        const chart = document.getElementById("chart");
+        chart.remove();
+        makeLineChart(data, Object.keys(data), width, height, document.body, palette, `${token} PRODUCT BUDGET`);
+      } else {
+        showRecord(legendItem);
+      }
+    });
+  }
+  return chartArea;
 }
 
 function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palette, title) {
