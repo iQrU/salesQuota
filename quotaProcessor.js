@@ -3,7 +3,7 @@
 const selector = document.querySelectorAll('.district');
 selector[0].setAttribute("class", "selected");
 const checkbox = document.getElementById("checkbox");
-let firstGrade, showRecord, token, productCodes, history, donutTitle, trayWidth = document.documentElement.clientWidth;
+let firstGrade, showRecord, token, record, recordData, productCodes, donutTitle, trayWidth = document.documentElement.clientWidth;
 let productData = {}, terrSum = {};
 const productCodeSet = {
   CORE2: { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand" },
@@ -16,7 +16,7 @@ const historyCall = new XMLHttpRequest();
 historyCall.onreadystatechange = function () {
   if (this.readyState == 4 && this.status == 200) {
     const dataArray = processCsv(this.responseText);
-    history = summerizeData(dataArray, 0, "terr", "product");
+    record = summerizeData(dataArray, 0, "terr", "product");
   }
 };
 historyCall.open("GET", "/data/SRA_2022.csv", false);
@@ -45,22 +45,22 @@ xhr.onreadystatechange = function () {
     }
     productCodes = pairProductCode(dataArray, "제품", "mpg");
 
-    let recordData = {};
-    for (let terr in history) {
+    recordData = {};
+    for (let terr in record) {
       recordData[terr] = {};
       for (let product in terrData[terr]) {
         recordData[terr][product] = {};
-        recordData[terr][product]["2022년"] = history[terr][product] ? history[terr][product].map(x => x * 1000) : terrData[terr][product];
+        recordData[terr][product]["2022년"] = record[terr][product] ? record[terr][product].map(x => x * 1000) : terrData[terr][product];
         recordData[terr][product]["Quota"] = terrData[terr][product];
       }
     }
 
     showRecord = function (product) {
       const chart = document.getElementById("chart");
-      chart.remove();
-      const footage = recordData[token][product];
-      const recordLine = showRecordLine(data[dist][token], recordData[token][product], product);
-      document.body.appendChild(recordLine);
+      chart ? chart.remove() : null;
+      const terr = token.substring(0, 8);
+      const recordChart = showRecordLine(data[dist][terr], recordData[terr][product], product);
+      document.body.appendChild(recordChart);
     }
 
     let distSum = {}, total = 0;
@@ -104,7 +104,9 @@ xhr.onreadystatechange = function () {
       chart.remove();
       token.length == 8 ?
         makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-        makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+        token.length == 5 ?
+          makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET") :
+          showRecord(token.slice(8));
     }
 
     window.addEventListener("resize", function () {
@@ -119,7 +121,9 @@ xhr.onreadystatechange = function () {
             throwCoverBalls(diameterArray) :
             token.length == 8 ?
               makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-              makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET");
+              token.length == 5 ?
+                makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET") :
+                showRecord(token.slice(8));
     });
   }
 }
@@ -386,7 +390,8 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
         allTerrDiv.appendChild(terrBox);
 
         terrBox.onclick = function () {
-          token = terr;
+          const item = token.slice(8);
+          token = terr + item;
           const chart = document.getElementById("chart");
           chart.remove();
 
@@ -398,7 +403,9 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           terrBox.setAttribute("class", "subItem terrActive");
 
           const legendSet = Object.keys(data[terr]);
-          makeLineChart(data[terr], legendSet, trayWidth, trayWidth * 0.5, document.body, palette, terr + " PRODUCT BUDGET");
+          token.length == 8 ?
+          makeLineChart(data[terr], legendSet, trayWidth, trayWidth * 0.5, document.body, palette, terr + " PRODUCT BUDGET") :
+          showRecord(item);
         };
       }
 
@@ -817,12 +824,13 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
 
     const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
     legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
-    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend");
+    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend"), legend.setAttribute("id", item);
     legend.innerHTML = item;
     chartArea.appendChild(legend);
 
     legend.addEventListener("click", function () {
       if (tag == item && token.substring(0, 5) == "CORE2") {
+        token = token.substring(0, 8) + item;
         showRecord(item);
       } else if (tag == item) {
         banner.innerHTML = title;
@@ -874,14 +882,14 @@ function showRecordLine(data, recordData, item) {
   const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
   const width = document.documentElement.clientWidth;
   const height = width / 2;
-  chartArea.setAttribute("width", width), chartArea.setAttribute("height", width / 2), chartArea.setAttribute("id", "chart");
+  chartArea.setAttribute("width", width), chartArea.setAttribute("height", height), chartArea.setAttribute("id", "chart");
 
   const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
   const basicFont = width * 0.01;
   const titleFont = basicFont * 2.5;
   banner.setAttribute("x", width / 2), banner.setAttribute("y", chartArea.height.baseVal.value / 20);
   banner.setAttribute("font-size", titleFont), banner.setAttribute("font-style", "italic"), banner.setAttribute("text-anchor", "middle"), banner.setAttribute("fill", palette[item]);
-  banner.innerHTML = token + " " + item + " " + "FOOTPRINTS";
+  banner.innerHTML = token.substring(0, 8) + " " + item + " " + "FOOTPRINTS";
   chartArea.appendChild(banner);
 
   if (checkbox.checked) {
@@ -1050,7 +1058,6 @@ function showRecordLine(data, recordData, item) {
   const legendSet = Object.keys(data);
   const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
   const legendInterval = legendUnit < 5 ? 6 : 8;
-  let tag = item;
   for (let i = 0; i < legendSet.length; i++) {
     positionX = width / 2 * (1 - legendUnit / legendInterval) + width / legendInterval * (i % legendUnit + 0.3);
     positionY = legendSet.length > 7 ? height * 0.93 + height * 0.04 * Math.floor(i / legendUnit) : height * 0.95;
@@ -1069,15 +1076,18 @@ function showRecordLine(data, recordData, item) {
     chartArea.appendChild(legend);
 
     legend.addEventListener("click", function () {
-      if (legendItem == tag) {
+      if (legendItem == item) {
         const chart = document.getElementById("chart");
         chart.remove();
+        token = token.substring(0, 8);
         makeLineChart(data, Object.keys(data), width, height, document.body, palette, `${token} PRODUCT BUDGET`);
       } else {
+        token = token.substring(0, 8) + legendItem;
         showRecord(legendItem);
       }
     });
   }
+
   return chartArea;
 }
 
