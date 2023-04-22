@@ -7,9 +7,9 @@ let firstGrade, showRecord, token, record, recordData, productCodes, donutTitle,
 let productData = {}, terrSum = {};
 const productCodeSet = {
   CORE2: { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand" },
-  CORE1: { BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" },
+  CORE1: { BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006B37388229: "Anti-infectives" },
   CORE3: {},
-  CORE4: { B04XEL: "RA portfolio", BAVBESIBRINL185VIZE60: "Oncology", CRE006388: "Antifungal", B37229: "Antibiotics" }
+  CORE4: { B04XEL: "RA portfolio", BAVBESIBRINL185VIZE60: "Oncology", CRE006B37388229: "Anti-infectives" }
 };
 
 const historyCall = new XMLHttpRequest();
@@ -61,6 +61,21 @@ xhr.onreadystatechange = function () {
       const terr = token.substring(0, 8);
       const recordChart = showRecordLine(data[dist][terr], recordData[terr][product], product);
       document.body.appendChild(recordChart);
+    }
+
+    function showTheLine (item, legendSet) {
+      const terr = token.substring(0, 8);
+      makeLineChart(terrData[terr], Object.keys(terrData[terr]), width, width * 0.5, document.body, palette, token + " " + item + " BUDGET");
+      for (let i = 0; i < legendSet.length; i++) {
+        const legendItem = legendSet[i];
+        if (legendItem != item) {
+          const lineElements = document.querySelectorAll(`.${legendItem}`);
+          for (let j = 0; j < lineElements.length; j++) {
+            const lineElement = lineElements[j];
+            lineElement.classList.toggle('hide');
+          }
+        }
+      }
     }
 
     let distSum = {}, total = 0;
@@ -404,8 +419,8 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
 
           const legendSet = Object.keys(data[terr]);
           token.length == 8 ?
-          makeLineChart(data[terr], legendSet, trayWidth, trayWidth * 0.5, document.body, palette, terr + " PRODUCT BUDGET") :
-          showRecord(item);
+            makeLineChart(data[terr], legendSet, trayWidth, trayWidth * 0.5, document.body, palette, terr + " PRODUCT BUDGET") :
+            showRecord(item);
         };
       }
 
@@ -575,15 +590,19 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
             const groupUnit = groupItem.innerText;
             productCodeSet[dist][codeSet] == groupUnit ? groupItem.classList.value = "groupItem checked" : groupItem.classList.value = "groupItem";
           }
+
           let title;
+          const subCodeSet = { CRE006388: "Antifungal", B37229: "Antibiotics" };
           productSet.length == 1 ?
             title = productSet[0] :
             activeNodes.length == legendSet.length ?
               title = "ALL Products" :
               productCodeSet[dist][codeSet] ?
                 title = productCodeSet[dist][codeSet] :
-                productSet.length == 2 ?
-                  title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` : title = "SEVERAL";
+                subCodeSet[codeSet] ?
+                  title = subCodeSet[codeSet] :
+                  productSet.length == 2 ?
+                    title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` : title = "SEVERAL";
           donutTitle = title;
           productSet.length != 0 ? bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, title) : null;
         };
@@ -819,12 +838,12 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
     legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
     legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
     legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
-    legendMark.setAttribute("fill", palette[item]);
+    legendMark.setAttribute("fill", palette[item]), legendMark.setAttribute("class", `lg${item.replace(" ", "")}`);
     chartArea.appendChild(legendMark);
 
     const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
     legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
-    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend"), legend.setAttribute("id", item);
+    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", `legend lg${item.replace(" ", "")}`);
     legend.innerHTML = item;
     chartArea.appendChild(legend);
 
@@ -843,8 +862,12 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
         for (let j = 0; j < legendSet.length; j++) {
           const legendClass = legendSet[j].replace(" ", "");
           const graphAll = document.querySelectorAll(`.${legendClass}`);
+          const lgBundle = document.querySelectorAll(`.lg${legendClass}`);
           for (let k = 0; k < graphAll.length; k++) {
             graphAll[k].setAttribute("class", `${legendClass}`);
+          }
+          for (let k = 0; k < lgBundle.length; k++) {
+            lgBundle[k].setAttribute("class", `${k == 0 ? "lg" + legendClass : "legend lg" + legendClass}`);
           }
         }
         tag = "total";
@@ -860,16 +883,28 @@ function makeLineChart(data, legendSet, width, height, parentDiv, palette, title
         for (let j = 0; j < legendSet.length; j++) {
           const legendClass = legendSet[j].replace(" ", "");
           const graphAll = document.querySelectorAll(`.${legendClass}`);
+          const lgBundle = document.querySelectorAll(`.lg${legendClass}`);
           for (let k = 0; k < graphAll.length; k++) {
             graphAll[k].setAttribute("class", `${legendClass}`);
+          }
+          for (let k = 0; k < lgBundle.length; k++) {
+            lgBundle[k].setAttribute("class", `${k == 0 ? "lg" + legendClass : "legend lg" + legendClass}`);
           }
           if (j != i) {
             const graphOther = document.querySelectorAll(`.${legendClass}`);
             for (let k = 0; k < graphOther.length; k++) {
               graphOther[k].classList.toggle('hide');
             }
+            for (let k = 0; k < lgBundle.length; k++) {
+              lgBundle[k].classList.toggle('dim');
+            }
+          } else {
+            for (let k = 0; k < lgBundle.length; k++) {
+              lgBundle[k].classList.toggle('bold');
+            }
           }
         }
+        //token = token.substring(0, 8) + "-" + item;
         tag = item;
       }
     });
@@ -1066,12 +1101,12 @@ function showRecordLine(data, recordData, item) {
     legendMark.setAttribute("x", positionX - width / 65), legendMark.setAttribute("width", width / 65);
     legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", width / 65);
     legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
-    legendMark.setAttribute("fill", palette[legendItem]);
+    legendMark.setAttribute("fill", palette[legendItem]), legendMark.setAttribute("class", `${(legendItem == item ? "bold" : "dim") + " lg" + legendItem.replace(" ", "")}`);
     chartArea.appendChild(legendMark);
 
     const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
     legend.setAttribute("x", positionX + 5), legend.setAttribute("y", positionY + height * 0.026);
-    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", "legend");
+    legend.setAttribute("font-size", basicFont * 1.4), legend.setAttribute("class", `${(legendItem == item ? "bold" : "dim") + " legend lg" + legendItem.replace(" ", "")}`);
     legend.innerHTML = legendItem;
     chartArea.appendChild(legend);
 
@@ -1084,6 +1119,23 @@ function showRecordLine(data, recordData, item) {
       } else {
         token = token.substring(0, 8) + legendItem;
         showRecord(legendItem);
+
+        for (let j = 0; j < legendSet.length; j++) {
+          const legendClass = legendSet[j].replace(" ", "");
+          const lgBundle = document.querySelectorAll(`.lg${legendClass}`);
+          for (let k = 0; k < lgBundle.length; k++) {
+            lgBundle[k].setAttribute("class", `${k == 0 ? "lg" + legendClass : "legend lg" + legendClass}`);
+          }
+          if (j != i) {
+            for (let k = 0; k < lgBundle.length; k++) {
+              lgBundle[k].classList.toggle('dim');
+            }
+          } else {
+            for (let k = 0; k < lgBundle.length; k++) {
+              lgBundle[k].classList.toggle('bold');
+            }
+          }
+        }
       }
     });
   }
