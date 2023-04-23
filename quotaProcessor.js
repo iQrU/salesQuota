@@ -16,11 +16,22 @@ const historyCall = new XMLHttpRequest();
 historyCall.onreadystatechange = function () {
   if (this.readyState == 4 && this.status == 200) {
     const dataArray = processCsv(this.responseText);
-    record = summerizeData(dataArray, 0, "terr", "product");
+    record = {};
+    record["2022년"] = summerizeData(dataArray, 0, "terr", "product");
   }
 };
 historyCall.open("GET", "/data/SRA_2022.csv", false);
 historyCall.send();
+
+const sraCall = new XMLHttpRequest();
+sraCall.onreadystatechange = function () {
+  if (this.readyState == 4 && this.status == 200) {
+    const dataArray = processCsv(this.responseText);
+    record["2023년"] = summerizeData(dataArray, 0, "terr", "product");
+  }
+}
+sraCall.open("GET", "/data/SRA_2023.csv", false);
+sraCall.send();
 
 const xhr = new XMLHttpRequest();
 xhr.onreadystatechange = function () {
@@ -46,14 +57,23 @@ xhr.onreadystatechange = function () {
     productCodes = pairProductCode(dataArray, "제품", "mpg");
 
     recordData = {};
-    for (let terr in record) {
-      recordData[terr] = {};
-      for (let product in terrData[terr]) {
-        recordData[terr][product] = {};
-        recordData[terr][product]["2022년"] = record[terr][product] ? record[terr][product].map(x => x * 1000) : terrData[terr][product];
-        recordData[terr][product]["Quota"] = terrData[terr][product];
+    for (let year in record) {
+      for (let terr in record[year]) {
+        if (!recordData[terr]) {
+          recordData[terr] = {};
+          for (let product in terrData[terr]) {
+            recordData[terr][product] = {};
+            recordData[terr][product][year] = record[year][terr][product] ? record[year][terr][product].map(x => x * 1000) : terrData[terr][product];
+            recordData[terr][product]["Quota"] = terrData[terr][product];
+          }
+        } else {
+          for (let product in terrData[terr]) {
+            recordData[terr][product][year] = record[year][terr][product] ? record[year][terr][product].map(x => x * 1000) : terrData[terr][product];
+          }
+        }
       }
     }
+    console.log(recordData);
 
     showRecord = function (product) {
       const chart = document.getElementById("chart");
@@ -63,7 +83,7 @@ xhr.onreadystatechange = function () {
       document.body.appendChild(recordChart);
     }
 
-    function showTheLine (item, legendSet) {
+    function showTheLine(item, legendSet) {
       const terr = token.substring(0, 8);
       makeLineChart(terrData[terr], Object.keys(terrData[terr]), width, width * 0.5, document.body, palette, token + " " + item + " BUDGET");
       for (let i = 0; i < legendSet.length; i++) {
@@ -995,10 +1015,10 @@ function showRecordLine(data, recordData, item) {
   if (checkbox.checked) {
     for (let i in recordData) {
       const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const opacity = i == "2022년" ? 0.3 : 0.7;
+      const opacity = i == "2022년" ? 0.3 : i == "2023년" ? 0.7 : 0.5;
       let sum = 0, itemPath = "";
 
-      for (let j = 0; j < 12; j++) {
+      for (let j = 0; j < (i == "2023년" ? item == "ELIQUIS" ? 2 : 3 : 12); j++) {
         sum += recordData[i][j];
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - sum / max * height * 0.8;
@@ -1015,11 +1035,12 @@ function showRecordLine(data, recordData, item) {
         }
       }
       itemLine.setAttribute("stroke", palette[item]), itemLine.setAttribute("stroke-opacity", opacity), itemLine.setAttribute("stroke-width", basicFont / 2);
+      i == "Quota" ? itemLine.setAttribute("stroke-dasharray", "5, 5") : null;
       itemLine.setAttribute("fill", "transparent"), itemLine.setAttribute("d", itemPath);
       chartArea.appendChild(itemLine);
 
       sum = 0;
-      for (let j = 0; j < 12; j++) {
+      for (let j = 0; j < (i == "2023년" ? item == "ELIQUIS" ? 2 : 3 : 12); j++) {
         sum += recordData[i][j];
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - sum / max * height * 0.8;
@@ -1031,10 +1052,11 @@ function showRecordLine(data, recordData, item) {
       }
 
       const introLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      const vPosition = i == "2022년" ? height * 0.8 : height * 0.75;
+      const vPosition = height * (i == "2023년" ? 0.7 : i == "2022년" ? 0.8 : 0.75);
       introLine.setAttribute("x1", width * 0.85), introLine.setAttribute("x2", width * 0.9);
       introLine.setAttribute("y1", vPosition), introLine.setAttribute("y2", vPosition);
       introLine.setAttribute("stroke", palette[item]), introLine.setAttribute("stroke-opacity", opacity), introLine.setAttribute("stroke-width", basicFont / 2);
+      i == "Quota" ? introLine.setAttribute("stroke-dasharray", "5, 5") : null;
       chartArea.appendChild(introLine);
       const introDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       introDot.setAttribute("cx", width * 0.875), introDot.setAttribute("cy", vPosition), introDot.setAttribute("r", basicFont * 0.5);
@@ -1052,11 +1074,12 @@ function showRecordLine(data, recordData, item) {
     for (let i = 0; i < recordSet.length; i++) {
       const recordItem = recordSet[i];
       const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const opacity = recordItem == "2022년" ? 0.2 : 0.6;
+      const opacity = recordItem == "2022년" ? 0.2 : recordItem == "2023년" ? 0.6 : 0.4;
       const fontColor = recordItem == "2022년" ? "grey" : palette[item];
+      const calib = recordItem == "2023년" ? height * 0.015 : 0;
       let itemPath = "";
 
-      for (let j = 0; j < 12; j++) {
+      for (let j = 0; j < (recordItem == "2023년" ? item == "ELIQUIS" ? 2 : 3 : 12); j++) {
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
         itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
@@ -1065,23 +1088,53 @@ function showRecordLine(data, recordData, item) {
         let labelContent = recordData[recordItem][j] / unit;
         if (labelContent >= 5 || labelContent * unit >= max / 10) {
           labelContent = parseInt(labelContent, 10);
-          label.setAttribute("x", positionX), label.setAttribute("y", positionY);
+          label.setAttribute("x", positionX), label.setAttribute("y", positionY - calib);
           label.setAttribute("font-size", labelFont), label.setAttribute("fill", fontColor), label.setAttribute("text-anchor", "middle");
           label.innerHTML = labelContent.toLocaleString();
           chartArea.appendChild(label);
         }
       }
-      itemPath += ` V ${height * 0.87} H ${axisWidth + interval / 3} Z`;
-      itemLine.setAttribute("stroke", "transparent"), itemLine.setAttribute("fill", palette[item]), itemLine.setAttribute("fill-opacity", opacity);
-      itemLine.setAttribute("d", itemPath);
-      chartArea.appendChild(itemLine);
+      if (recordItem == "2023년") {
+        itemLine.setAttribute("stroke", palette[item]), itemLine.setAttribute("stroke-opacity", opacity), itemLine.setAttribute("stroke-width", basicFont / 2);
+        itemLine.setAttribute("fill", "transparent");
+        itemLine.setAttribute("d", itemPath);
+        chartArea.appendChild(itemLine);
 
-      const intro = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      const hPosition = recordItem == "2022년" ? width * 0.91 : width * 0.85;
-      intro.setAttribute("x", hPosition), intro.setAttribute("width", width / 60);
-      intro.setAttribute("y", height / 50), intro.setAttribute("height", width / 100);
-      intro.setAttribute("fill", palette[item]), intro.setAttribute("fill-opacity", opacity);
-      chartArea.appendChild(intro);
+        for (let j = 0; j < (recordItem == "ELIQUIS" ? 2 : 3); j++) {
+          positionX = interval * j + axisWidth + interval / 3;
+          positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
+  
+          const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          dot.setAttribute("cx", positionX), dot.setAttribute("cy", positionY), dot.setAttribute("r", basicFont * 0.5);
+          dot.setAttribute("stroke", palette[item]), dot.setAttribute("stroke-opacity", opacity + 0.3), dot.setAttribute("stroke-width", basicFont * 0.2), dot.setAttribute("fill", "white");
+          chartArea.appendChild(dot);  
+        }
+
+      } else {
+        itemPath += ` V ${height * 0.87} H ${axisWidth + interval / 3} Z`;
+        itemLine.setAttribute("stroke", "transparent"), itemLine.setAttribute("fill", palette[item]), itemLine.setAttribute("fill-opacity", opacity);
+        itemLine.setAttribute("d", itemPath);
+        chartArea.appendChild(itemLine);
+      }
+
+      const hPosition = width * (recordItem == "2023년" ? 0.92 : recordItem == "2022년" ? 0.855 : 0.8);
+      if (recordItem == "2023년") {
+        const introLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        introLine.setAttribute("x1", width * 0.912), introLine.setAttribute("x2", width * 0.937);
+        introLine.setAttribute("y1", height / 35), introLine.setAttribute("y2", height / 35);
+        introLine.setAttribute("stroke", palette[item]), introLine.setAttribute("stroke-opacity", opacity), introLine.setAttribute("stroke-width", basicFont / 2);
+        chartArea.appendChild(introLine);
+        const introDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        introDot.setAttribute("cx", width * 0.9245), introDot.setAttribute("cy", height / 35), introDot.setAttribute("r", basicFont * 0.5);
+        introDot.setAttribute("stroke", palette[item]), introDot.setAttribute("stroke-opacity", opacity + 0.3), introDot.setAttribute("stroke-width", basicFont * 0.2), introDot.setAttribute("fill", "white");
+        chartArea.appendChild(introDot);  
+      } else {
+        const intro = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        intro.setAttribute("x", hPosition), intro.setAttribute("width", width / 60);
+        intro.setAttribute("y", height / 50), intro.setAttribute("height", width / 100);
+        intro.setAttribute("fill", palette[item]), intro.setAttribute("fill-opacity", opacity);
+        chartArea.appendChild(intro);  
+      }
       const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
       introLabel.setAttribute("x", hPosition + width / 50), introLabel.setAttribute("y", height * 0.03);
       introLabel.setAttribute("font-size", basicFont), introLabel.setAttribute("fill", fontColor), introLabel.setAttribute("alignment-baseline", "middle");
