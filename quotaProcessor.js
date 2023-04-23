@@ -1074,7 +1074,7 @@ function showRecordLine(data, recordData, item) {
     for (let i = 0; i < recordSet.length; i++) {
       const recordItem = recordSet[i];
       const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const opacity = recordItem == "2022년" ? 0.2 : recordItem == "2023년" ? 0.6 : 0.4;
+      const opacity = recordItem == "2022년" ? 0.2 : recordItem == "2023년" ? 0.7 : 0.4;
       const fontColor = recordItem == "2022년" ? "grey" : palette[item];
       const calib = recordItem == "2023년" ? height * 0.015 : 0;
       let itemPath = "";
