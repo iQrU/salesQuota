@@ -1100,7 +1100,7 @@ function showRecordLine(data, recordData, item) {
         itemLine.setAttribute("d", itemPath);
         chartArea.appendChild(itemLine);
 
-        for (let j = 0; j < (recordItem == "ELIQUIS" ? 2 : 3); j++) {
+        for (let j = 0; j < (item == "ELIQUIS" ? 2 : 3); j++) {
           positionX = interval * j + axisWidth + interval / 3;
           positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
   
