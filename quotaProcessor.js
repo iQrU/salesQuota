@@ -1018,7 +1018,7 @@ function showRecordLine(data, recordData, item) {
       const opacity = i == "2022년" ? 0.3 : i == "2023년" ? 0.7 : 0.5;
       let sum = 0, itemPath = "";
 
-      for (let j = 0; j < (i == "2023년" ? item == "ELIQUIS" ? 2 : 3 : 12); j++) {
+      for (let j = 0; j < (i == "2023년" ? 3 : 12); j++) {
         sum += recordData[i][j];
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - sum / max * height * 0.8;
@@ -1040,7 +1040,7 @@ function showRecordLine(data, recordData, item) {
       chartArea.appendChild(itemLine);
 
       sum = 0;
-      for (let j = 0; j < (i == "2023년" ? item == "ELIQUIS" ? 2 : 3 : 12); j++) {
+      for (let j = 0; j < (i == "2023년" ? 3 : 12); j++) {
         sum += recordData[i][j];
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - sum / max * height * 0.8;
@@ -1079,7 +1079,7 @@ function showRecordLine(data, recordData, item) {
       const calib = recordItem == "2023년" ? height * 0.015 : 0;
       let itemPath = "";
 
-      for (let j = 0; j < (recordItem == "2023년" ? item == "ELIQUIS" ? 2 : 3 : 12); j++) {
+      for (let j = 0; j < (recordItem == "2023년" ? 3 : 12); j++) {
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
         itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
@@ -1100,7 +1100,7 @@ function showRecordLine(data, recordData, item) {
         itemLine.setAttribute("d", itemPath);
         chartArea.appendChild(itemLine);
 
-        for (let j = 0; j < (item == "ELIQUIS" ? 2 : 3); j++) {
+        for (let j = 0; j < 3; j++) {
           positionX = interval * j + axisWidth + interval / 3;
           positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
   
