@@ -311,6 +311,8 @@ function pairProductCode(dataArray, productColumn, codeColumn) {
 }
 
 function makeBarChart(data, legendSet, width, height, parentDiv, palette, title) {
+  const dataKeys = Object.keys(data).sort();
+  const dist = dataKeys[0].substring(0, 5);
 
   const chartArea = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   chartArea.setAttribute("width", width), chartArea.setAttribute("height", height), chartArea.setAttribute("id", "chart");
@@ -335,7 +337,18 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
       subtotal += item[item.length - 1];
     }
     max = subtotal > max ? subtotal : max;
-    terrSum[i] = subtotal;
+
+    if (dist == "CORE2") {
+      terrSum[i] = {}, terrSum[i]["Quota"] = 0, terrSum[i]["2023년"] = 0;
+      let terrTotal = 0;
+      for (let j in recordData[i]) {
+        const item = recordData[i][j]["2023년"];
+        terrTotal += item[item.length - 1];
+      }
+      terrSum[i]["Quota"] = subtotal, terrSum[i]["2023년"] = terrTotal;
+    } else {
+      terrSum[i] = subtotal;
+    }
   }
   let unitNum = Math.pow(10, Math.floor(Math.log10(max)));
   max / unitNum < 2 ? unitNum = unitNum / 4 : max / unitNum < 5 ? unitNum = unitNum / 2 : null;
@@ -387,8 +400,6 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
   }
 
   let positionX, positionY, medianX;
-  const dataKeys = Object.keys(data).sort();
-  const dist = dataKeys[0].substring(0, 5);
   const barWidth = chartArea.width.baseVal.value / (dataKeys.length + 2) * 0.7;
   const signWidth = basicFont * 1.2 * 8 * 3 / 5;
   for (let i = 0; i < dataKeys.length; i++) {
@@ -548,18 +559,34 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           }
           const chart = document.getElementById("chart");
           chart ? chart.remove() : null;
-          for (let terr in productData) {
-            productData[terr] = terrSum[terr];
-          }
           donutTitle = "ALL Products";
-          bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, "ALL Products");
+          if (dist == "CORE2") {
+            for (let terr in productData["Quota"]) {
+              productData["Quota"][terr] = terrSum[terr]["Quota"];
+              productData["2023년"][terr] = terrSum[terr]["2023년"];
+            }
+          } else {
+            for (let terr in productData) {
+              productData[terr] = terrSum[terr];
+            }
+          }
+          console.log(terrSum);
+          dist == "CORE2" ? bakePizza(productData, dataKeys, rainbow, "ALL Products") : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, "ALL Products");
         } else {
           for (let j = 0; j < productItems.length; j++) {
             const productItem = productItems[j];
             productItem.classList.value = "productItem";
           }
-          for (let terr in productData) {
-            productData[terr] = 0;
+          if (dist == "CORE2") {
+            for (let pivot in productData) {
+              for (let terr in productData[pivot]) {
+                productData[pivot][terr] = 0;
+              }
+            }
+          } else {
+            for (let terr in productData) {
+              productData[terr] = 0;
+            }
           }
           token = "emptyDonut";
         }
@@ -588,13 +615,23 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
             for (let k = 0; k < dataKeys.length; k++) {
               const terr = dataKeys[k];
               const product = productItem.innerText;
-              data[terr][product] ? productData[terr] += data[terr][product][12] : null;
+              if (dist == "CORE2" && data[terr][product]) {
+                productData["Quota"][terr] += data[terr][product][12];
+                productData["2023년"][terr] += recordData[terr][product]["2023년"][12];
+              } else {
+                data[terr][product] ? productData[terr] += data[terr][product][12] : null;
+              }
             }
           } else {
             for (let k = 0; k < dataKeys.length; k++) {
               const terr = dataKeys[k];
               const product = productItem.innerText;
-              data[terr][product] ? productData[terr] -= data[terr][product][12] : null;
+              if (dist == "CORE2" && data[terr][product]) {
+                productData["Quota"][terr] -= data[terr][product][12];
+                productData["2023년"][terr] -= recordData[terr][product]["2023년"][12];
+              } else {
+                data[terr][product] ? productData[terr] -= data[terr][product][12] : null;
+              }
             }
           }
           const activeNodes = document.querySelectorAll(`.active`);
@@ -624,7 +661,10 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                   productSet.length == 2 ?
                     title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` : title = "SEVERAL";
           donutTitle = title;
-          productSet.length != 0 ? bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, title) : null;
+          productSet.length != 0 ?
+            dist == "CORE2" ?
+              bakePizza(productData, dataKeys, rainbow, title) : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, title)
+            : null;
         };
       }
 
@@ -664,35 +704,69 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
             }
             const chart = document.getElementById("chart");
             chart ? chart.remove() : null;
-            for (let terr in productData) {
-              productData[terr] = 0;
+            if (dist == "CORE2") {
+              for (let pivot in productData) {
+                for (let terr in productData[pivot]) {
+                  productData[pivot][terr] = 0;
+                }
+              }
               for (let j = 0; j < productSet.length; j++) {
                 const product = productSet[j];
-                data[terr][product] ? productData[terr] += data[terr][product][12] : null;
+                for (let terr in productData["Quota"]) {
+                  productData["Quota"][terr] += data[terr][product][12];
+                  productData["2023년"][terr] += recordData[terr][product]["2023년"][12];  
+                }
               }
+              bakePizza(productData, dataKeys, rainbow, groupUnit);
+            } else {
+              for (let terr in productData) {
+                productData[terr] = 0;
+                for (let j = 0; j < productSet.length; j++) {
+                  const product = productSet[j];
+                  data[terr][product] ? productData[terr] += data[terr][product][12] : null;
+                }
+              }  
+              bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, groupUnit);
             }
             donutTitle = groupUnit;
-            bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, groupUnit);
           } else {
             for (let j = 0; j < productItems.length; j++) {
               const productItem = productItems[j];
               productItem.classList.value = "productItem";
             }
-            for (let terr in productData) {
-              productData[terr] = 0;
+            if (dist == "CORE2") {
+              for (let pivot in productData) {
+                for (let terr in productData[pivot]) {
+                  productData[pivot][terr] = 0;
+                }
+              }
+            } else {
+              for (let terr in productData) {
+                productData[terr] = 0;
+              }
             }
             token = "emptyDonut";
           }
         };
       }
 
-      for (let j = 0; j < dataKeys.length; j++) {
-        data[dataKeys[j]][legendSet[i]] ?
-          productData[dataKeys[j]] = data[dataKeys[j]][legendSet[i]][12] : productData[dataKeys[j]] = 0;
+      if (dist == "CORE2") {
+        productData["2023년"] = {}, productData["Quota"] = {};
+        for (let j = 0; j < dataKeys.length; j++) {
+          data[dataKeys[j]][legendSet[i]] ?
+            productData["Quota"][dataKeys[j]] = data[dataKeys[j]][legendSet[i]][12] : productData["Quota"][dataKeys[j]] = 0;
+          recordData[dataKeys[j]][legendSet[i]]["2023년"] ?
+            productData["2023년"][dataKeys[j]] = recordData[dataKeys[j]][legendSet[i]]["2023년"][12] : productData["2023년"][dataKeys[j]] = 0;
+        }
+      } else {
+        for (let j = 0; j < dataKeys.length; j++) {
+          data[dataKeys[j]][legendSet[i]] ?
+            productData[dataKeys[j]] = data[dataKeys[j]][legendSet[i]][12] : productData[dataKeys[j]] = 0;
+        }
       }
       const checkbox = document.querySelector(`.checkbox`);
       checkbox.setAttribute("class", "checkbox hidden");
-      bakeDonut(productData, dataKeys, width, height, document.body, rainbow, legendSet[i]);
+      dist == "CORE2" ? bakePizza(productData, dataKeys, rainbow, legendSet[i]) : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, legendSet[i]);
       donutTitle = legendSet[i];
     });
   }
@@ -1028,8 +1102,14 @@ function showRecordLine(data, recordData, item) {
         let labelContent = sum / unit;
         if (labelContent >= max * 0.1 / unit) {
           labelContent = parseInt(labelContent, 10);
-          label.setAttribute("x", positionX), label.setAttribute("y", positionY - height * 0.015);
-          label.setAttribute("font-size", labelFont), label.setAttribute("text-anchor", "middle");
+          if (i == "2023년") {
+            label.setAttribute("x", positionX + width * 0.01), label.setAttribute("y", positionY);
+            label.setAttribute("alignment-baseline", "middle"), label.setAttribute("fill", palette[item]);
+          } else {
+            label.setAttribute("x", positionX), label.setAttribute("y", positionY - height * 0.015);
+            label.setAttribute("text-anchor", "middle");
+          }
+          label.setAttribute("font-size", labelFont);
           label.innerHTML = labelContent.toLocaleString();
           chartArea.appendChild(label);
         }
@@ -1065,6 +1145,7 @@ function showRecordLine(data, recordData, item) {
       const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
       introLabel.setAttribute("x", width * 0.91), introLabel.setAttribute("y", vPosition);
       introLabel.setAttribute("font-size", basicFont), introLabel.setAttribute("alignment-baseline", "middle");
+      i == "2023년" ? introLabel.setAttribute("fill", palette[item]) : null;
       introLabel.innerHTML = i;
       chartArea.appendChild(introLabel);
     }
@@ -1076,7 +1157,6 @@ function showRecordLine(data, recordData, item) {
       const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
       const opacity = recordItem == "2022년" ? 0.2 : recordItem == "2023년" ? 0.7 : 0.4;
       const fontColor = recordItem == "2022년" ? "grey" : palette[item];
-      const calib = recordItem == "2023년" ? height * 0.015 : 0;
       let itemPath = "";
 
       for (let j = 0; j < (recordItem == "2023년" ? 3 : 12); j++) {
@@ -1088,8 +1168,14 @@ function showRecordLine(data, recordData, item) {
         let labelContent = recordData[recordItem][j] / unit;
         if (labelContent >= 5 || labelContent * unit >= max / 10) {
           labelContent = parseInt(labelContent, 10);
-          label.setAttribute("x", positionX), label.setAttribute("y", positionY - calib);
-          label.setAttribute("font-size", labelFont), label.setAttribute("fill", fontColor), label.setAttribute("text-anchor", "middle");
+          if (recordItem == "2023년") {
+            label.setAttribute("x", positionX + width * 0.01), label.setAttribute("y", positionY);
+            label.setAttribute("alignment-baseline", "middle");
+          } else {
+            label.setAttribute("x", positionX), label.setAttribute("y", positionY);
+            label.setAttribute("text-anchor", "middle");
+          }
+          label.setAttribute("font-size", labelFont), label.setAttribute("fill", fontColor)
           label.innerHTML = labelContent.toLocaleString();
           chartArea.appendChild(label);
         }
@@ -1103,11 +1189,11 @@ function showRecordLine(data, recordData, item) {
         for (let j = 0; j < 3; j++) {
           positionX = interval * j + axisWidth + interval / 3;
           positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
-  
+
           const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
           dot.setAttribute("cx", positionX), dot.setAttribute("cy", positionY), dot.setAttribute("r", basicFont * 0.5);
           dot.setAttribute("stroke", palette[item]), dot.setAttribute("stroke-opacity", opacity + 0.3), dot.setAttribute("stroke-width", basicFont * 0.2), dot.setAttribute("fill", "white");
-          chartArea.appendChild(dot);  
+          chartArea.appendChild(dot);
         }
 
       } else {
@@ -1127,13 +1213,13 @@ function showRecordLine(data, recordData, item) {
         const introDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         introDot.setAttribute("cx", width * 0.9245), introDot.setAttribute("cy", height / 35), introDot.setAttribute("r", basicFont * 0.5);
         introDot.setAttribute("stroke", palette[item]), introDot.setAttribute("stroke-opacity", opacity + 0.3), introDot.setAttribute("stroke-width", basicFont * 0.2), introDot.setAttribute("fill", "white");
-        chartArea.appendChild(introDot);  
+        chartArea.appendChild(introDot);
       } else {
         const intro = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         intro.setAttribute("x", hPosition), intro.setAttribute("width", width / 60);
         intro.setAttribute("y", height / 50), intro.setAttribute("height", width / 100);
         intro.setAttribute("fill", palette[item]), intro.setAttribute("fill-opacity", opacity);
-        chartArea.appendChild(intro);  
+        chartArea.appendChild(intro);
       }
       const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
       introLabel.setAttribute("x", hPosition + width / 50), introLabel.setAttribute("y", height * 0.03);
@@ -1360,5 +1446,271 @@ function bakeDonut(dataDough, legendSet, trayWidth, trayHeight, parentDiv, palet
   line.setAttribute("y1", center.y), line.setAttribute("y2", center.y), line.setAttribute("class", "dim");
   line.setAttribute("stroke", `${productColor[title] ? productColor[title] : "indigo"}`), line.setAttribute("stroke-width", basicFont / 2), line.setAttribute("stroke-linecap", "round");
   donutTray.appendChild(line);
+
+}
+
+function bakePizza(dataDough, legendSet, palette, topping) {
+
+  const pizzaPan = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const panWidth = document.documentElement.clientWidth;
+  const panHeight = panWidth / 2;
+  pizzaPan.setAttribute("width", panWidth), pizzaPan.setAttribute("height", panHeight), pizzaPan.setAttribute("id", "chart");
+
+  const productColor = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
+  const hue = productColor[topping] ? productColor[topping] : "indigo";
+  const basicFont = panWidth * 0.01;
+  const center = { x: panWidth / 3.8, y: panHeight / 2 };
+  const radius = panHeight / 2.3;
+  const crustRadius = panHeight / 2.25;
+  let startX = center.x, startY = center.y - radius, endX, endY, portion = 0;
+  let crustX = center.x, crustY = center.y - crustRadius, crustEndX, crustEndY, crustPortion = 0;
+
+  let contentSet = {};
+  for (let lump in dataDough) {
+    const dough = dataDough[lump];
+    contentSet[lump] = 0;
+    for (let i = 0; i < legendSet.length; i++) {
+      const content = legendSet[i];
+      contentSet[lump] += dough[content] ? dough[content] : 0;
+    }
+  }
+
+  const mainDough = dataDough["2023년"], crustDough = dataDough["Quota"];
+  let positionX, positionY, posiRadSet = {mainRad: [], crustRad: [], calibRad: []}, tag;
+  for (let i = 0; i < legendSet.length; i++) {
+    const item = legendSet[i], itemValue = mainDough[item] ? mainDough[item] : 0;
+    const color = Array.isArray(palette) ? palette[i % palette.length] : palette[item];
+    const share = itemValue / contentSet["2023년"];
+    const posiRad = portion + share * Math.PI;
+    posiRadSet.mainRad.push(portion);
+    if (share == 1) {
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", `${center.x}`), circle.setAttribute("cy", `${center.y}`), circle.setAttribute("r", `${radius}`);
+      circle.setAttribute("fill", color), circle.setAttribute("class", `${item}`);
+      pizzaPan.appendChild(circle);
+    } else if (share != 0) {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const largeArcFlag = share > 0.5 ? 1 : 0;
+      portion += 2 * Math.PI * share;
+      endX = center.x + radius * Math.sin(portion), endY = center.y - radius * Math.cos(portion);
+
+      path.setAttribute("fill", color), path.setAttribute("stroke", "white");
+      path.setAttribute("class", `${item}`);
+      path.setAttribute("d", `M ${center.x} ${center.y} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`);
+      startX = endX, startY = endY;
+      pizzaPan.appendChild(path);
+    }
+
+    if (share > 0.02) {
+      const innerText = (share * 100).toFixed(0) + "%";
+      const percentFont = basicFont * 1.8;
+      const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      percent.setAttribute("x", center.x + 0.8 * radius * Math.sin(posiRad)), percent.setAttribute("y", center.y - 0.8 * radius * Math.cos(posiRad));
+      percent.setAttribute("text-anchor", "middle"), percent.setAttribute("alignment-baseline", "middle");
+      percent.setAttribute("font-size", percentFont);
+      percent.setAttribute("class", `${item}tag`);
+      color == "purple" || color == "blue" || color == "green" || color == "brown" ? percent.setAttribute("fill", "white") : null;
+      percent.innerHTML = innerText;
+      pizzaPan.appendChild(percent);
+    }
+
+    const crustValue = crustDough[item] ? crustDough[item] : 0;
+    const crustShare = crustValue / contentSet["Quota"];
+    const crustRad = crustPortion + crustShare * Math.PI;
+    posiRadSet.crustRad.push(crustPortion);
+    posiRadSet.calibRad.push(posiRadSet.mainRad[i] - posiRadSet.crustRad[i]);
+    if (crustShare == 1) {
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", `${center.x}`), circle.setAttribute("cy", `${center.y}`), circle.setAttribute("r", `${crustRadius}`);
+      circle.setAttribute("stroke", color), circle.setAttribute("stroke-width", basicFont / 3), circle.setAttribute("fill", "transparent"), circle.setAttribute("class", "crust");
+      pizzaPan.appendChild(circle);
+    } else if (crustShare != 0) {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const largeArcFlag = crustShare > 0.5 ? 1 : 0;
+      crustPortion += 2 * Math.PI * crustShare;
+      crustEndX = center.x + crustRadius * Math.sin(crustPortion), crustEndY = center.y - crustRadius * Math.cos(crustPortion);
+
+      path.setAttribute("fill", "transparent"), path.setAttribute("stroke", color), path.setAttribute("stroke-width", basicFont / 3);
+      path.setAttribute("class", "crust");
+      path.setAttribute("d", `M ${crustX} ${crustY} A ${crustRadius} ${crustRadius} 0 ${largeArcFlag} 1 ${crustEndX} ${crustEndY}`);
+      crustX = crustEndX, crustY = crustEndY;
+      pizzaPan.appendChild(path);
+    }
+
+    if (crustShare > 0.02) {
+      const innerText = (crustShare * 100).toFixed(0) + "%";
+      const percentFont = basicFont;
+      const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      percent.setAttribute("x", center.x + 1.06 * crustRadius * Math.sin(crustRad)), percent.setAttribute("y", center.y - 1.06 * crustRadius * Math.cos(crustRad));
+      percent.setAttribute("text-anchor", "middle"), percent.setAttribute("alignment-baseline", "middle");
+      percent.setAttribute("font-size", percentFont), percent.setAttribute("fill", color);
+      percent.setAttribute("class", "crust");
+      percent.innerHTML = innerText;
+      pizzaPan.appendChild(percent);
+    }
+
+
+    const unitNum = Math.ceil(legendSet.length / Math.ceil(legendSet.length / 7));
+    const unitCol = Math.ceil(legendSet.length / unitNum);
+    positionX = panWidth * 3 / 5 + panWidth / 7.5 * (i % unitCol);
+    positionY = panHeight / 2 + basicFont * 0.9 - panHeight * 0.09 * (unitNum / 2 - Math.floor(i / unitCol));
+    const legendMark = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    legendMark.setAttribute("x", positionX - panWidth / 65), legendMark.setAttribute("width", panWidth / 55);
+    legendMark.setAttribute("y", positionY), legendMark.setAttribute("height", panWidth / 55);
+    legendMark.setAttribute("rx", basicFont / 4), legendMark.setAttribute("ry", basicFont / 4);
+    legendMark.setAttribute("fill", color), legendMark.setAttribute("class", `${item}`);
+    pizzaPan.appendChild(legendMark);
+
+    const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    legend.setAttribute("x", positionX + panWidth * 0.01), legend.setAttribute("y", positionY + panHeight * 0.03);
+    legend.setAttribute("font-size", basicFont * 1.8), legend.setAttribute("class", `legend ${item}`);
+    legend.innerHTML = legendSet[i];
+
+    legend.onclick = function () {
+      const crustTail = document.querySelectorAll('.crustTail');
+      for (let j = 0; j < crustTail.length; j++) {
+        crustTail[j].remove();
+      }
+      if (item != tag) {
+        const crustAll = document.querySelectorAll('.crust');
+        for (let j = 0; j < crustAll.length; j++) {
+          const crust = crustAll[j];
+          crust.classList.value = "crust hide";
+        }
+
+        crustPortion = posiRadSet.calibRad[i], crustX = center.x + crustRadius * Math.sin(crustPortion), crustY = center.y - crustRadius * Math.cos(crustPortion);
+        for (let j = 0; j < legendSet.length; j++) {
+          const item = legendSet[j];
+          const crustValue = crustDough[item] ? crustDough[item] : 0;
+          const crustShare = crustValue / contentSet["Quota"];
+          const crustRad = crustPortion + crustShare * Math.PI;
+          const color = Array.isArray(palette) ? palette[j % palette.length] : palette[item];
+          if (crustShare == 1) {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", `${center.x}`), circle.setAttribute("cy", `${center.y}`), circle.setAttribute("r", `${crustRadius}`);
+            circle.setAttribute("stroke", color), circle.setAttribute("stroke-width", basicFont / 3), circle.setAttribute("fill", "transparent"), circle.setAttribute("class", "crustTail");
+            pizzaPan.appendChild(circle);
+          } else if (crustShare != 0) {
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const largeArcFlag = crustShare > 0.5 ? 1 : 0;
+            crustPortion += 2 * Math.PI * crustShare;
+            crustEndX = center.x + crustRadius * Math.sin(crustPortion), crustEndY = center.y - crustRadius * Math.cos(crustPortion);
+      
+            path.setAttribute("fill", "transparent"), path.setAttribute("stroke", color), path.setAttribute("stroke-width", basicFont / 3);
+            path.setAttribute("class", `crustTail${i != j ? " dimmer" : ""}`);
+            path.setAttribute("d", `M ${crustX} ${crustY} A ${crustRadius} ${crustRadius} 0 ${largeArcFlag} 1 ${crustEndX} ${crustEndY}`);
+            crustX = crustEndX, crustY = crustEndY;
+            pizzaPan.appendChild(path);
+          }
+          if (i == j) {
+            const innerText = (crustShare * 100).toFixed(0) + "%";
+            const percentFont = basicFont;
+            const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            percent.setAttribute("x", center.x + 1.06 * crustRadius * Math.sin(crustRad)), percent.setAttribute("y", center.y - 1.06 * crustRadius * Math.cos(crustRad));
+            percent.setAttribute("text-anchor", "middle"), percent.setAttribute("alignment-baseline", "middle");
+            percent.setAttribute("font-size", percentFont), percent.setAttribute("fill", color);
+            percent.setAttribute("class", "crustTail bold");
+            percent.innerHTML = innerText;
+            pizzaPan.appendChild(percent);
+          }
+
+          const pieTag = document.querySelector(`.${legendSet[j]}tag`);
+          if (pieTag) {
+            pieTag.classList.value = `legend ${legendSet[j]}tag`;
+            i != j ? pieTag.classList.toggle('hide') : pieTag.classList.toggle('bold');
+          }
+
+          const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
+          for (let k = 0; k < legendPie.length; k++) {
+            legendPie[k].classList.value = `legend ${legendSet[j]}`;
+            i != j ? legendPie[k].classList.toggle('dimmer') : legendPie[k].classList.toggle('bold');
+          }
+
+        }
+        tag = item;
+      } else {
+        const crustAll = document.querySelectorAll('.crust');
+        for (let j = 0; j < crustAll.length; j++) {
+          const crust = crustAll[j];
+          crust.classList.value = "crust";
+        }
+        for (let j = 0; j < legendSet.length; j++) {
+          const pieTag = document.querySelector(`.${legendSet[j]}tag`);
+          pieTag ? pieTag.classList.toggle('hide') : null;
+          const legendPie = document.querySelectorAll(`.${legendSet[j]}`);
+          for (let k = 0; k < legendPie.length; k++) {
+            legendPie[k].classList.toggle('dimmer');
+          }
+        }
+
+        const thisPieTag = document.querySelector(`.${item}tag`);
+        if (thisPieTag) {
+          thisPieTag.classList.toggle('hide'), thisPieTag.classList.toggle('bold');
+        }
+        const thisPie = document.querySelectorAll(`.${item}`);
+        for (let j = 0; j < thisPie.length; j++) {
+          thisPie[j].classList.toggle('dimmer');
+          thisPie[j].classList.toggle('bold');
+        }
+        thisPie[0].classList.value == `legend ${item}` ? tag = "total" : null;
+      }
+
+      const prevBanner = document.querySelector(`.banner`);
+      const previousVol = document.querySelector(`.legendVolume`);
+      previousVol ? previousVol.remove() : null;
+      if (tag == "total") {
+        prevBanner.setAttribute("font-size", basicFont * 2.6);
+        prevBanner.setAttribute("x", center.x), prevBanner.setAttribute("y", center.y - basicFont * 2.5);
+        prevBanner.setAttribute("text-anchor", "middle");
+      } else {
+        prevBanner.setAttribute("font-size", basicFont * 1.4);
+        prevBanner.setAttribute("x", center.x - radius * 0.45), prevBanner.setAttribute("y", center.y - basicFont * 6.5);
+        prevBanner.setAttribute("text-anchor", "start");
+        const legendVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const volumeFont = basicFont * 2.1;
+        const volumeContent = "₩ " + itemValue.toLocaleString();
+        legendVolume.setAttribute("x", center.x + radius * 0.5), legendVolume.setAttribute("y", center.y - volumeFont);
+        legendVolume.setAttribute("class", "legendVolume");
+        legendVolume.setAttribute("font-size", volumeFont);
+        legendVolume.setAttribute("fill", hue);
+        legendVolume.innerHTML = volumeContent;
+        pizzaPan.appendChild(legendVolume);
+      }
+    };
+    pizzaPan.appendChild(legend);
+  }
+
+  const hole = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  hole.setAttribute("cx", center.x), hole.setAttribute("cy", center.y);
+  hole.setAttribute("r", radius * 3 / 5), hole.setAttribute("fill", "white");
+  pizzaPan.appendChild(hole);
+
+  const banner = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  const titleFont = basicFont * 2.6;
+  banner.setAttribute("x", center.x), banner.setAttribute("y", center.y - basicFont * 2.5);
+  banner.setAttribute("text-anchor", "middle");
+  banner.setAttribute("class", "banner");
+  banner.setAttribute("font-size", titleFont);
+  banner.setAttribute("fill", hue);
+  banner.innerHTML = topping;
+  pizzaPan.appendChild(banner);
+
+  const productVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  const volumeFont = basicFont * 2.1;
+  const volumeContent = "₩ " + contentSet["2023년"].toLocaleString();
+  productVolume.setAttribute("x", center.x + radius * 0.5), productVolume.setAttribute("y", center.y + titleFont * 17 / 12);
+  productVolume.setAttribute("class", "productVolume");
+  productVolume.setAttribute("font-size", volumeFont);
+  productVolume.setAttribute("fill", hue);
+  productVolume.innerHTML = volumeContent;
+  pizzaPan.appendChild(productVolume);
+
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", center.x - radius * 0.5), line.setAttribute("x2", center.x + radius * 0.5);
+  line.setAttribute("y1", center.y), line.setAttribute("y2", center.y), line.setAttribute("class", "dim");
+  line.setAttribute("stroke", hue), line.setAttribute("stroke-width", basicFont / 2), line.setAttribute("stroke-linecap", "round");
+  pizzaPan.appendChild(line);
+
+  document.body.appendChild(pizzaPan);
 
 }
