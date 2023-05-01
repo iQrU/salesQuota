@@ -6,10 +6,10 @@ const checkbox = document.getElementById("checkbox");
 let firstGrade, showRecord, token, record, recordData, productCodes, donutTitle, trayWidth = document.documentElement.clientWidth;
 let productData = {}, terrSum = {};
 const productCodeSet = {
-  CORE2: { B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", CIBB04XELXEU: "I&I Brands", XELXEU: "TOFA-Brand" },
+  CORE2: { CIBB04XELXEU: "I&I Brands", B04XEL: "RA portfolio", CIBXELXEU: "JAK portfolio", XELXEU: "TOFA-Brand" },
   CORE1: { BAVBESIBRINLLOR185VIZE60: "Oncology", CRE006B37388229: "Anti-infectives" },
   CORE3: {},
-  CORE4: { B04XEL: "RA portfolio", BAVBESIBRINL185VIZE60: "Oncology", CRE006B37388229: "Anti-infectives" }
+  CORE4: { BAVBESIBRINL185VIZE60: "Oncology", CRE006B37388229: "Anti-infectives", B04XEL: "RA portfolio" }
 };
 
 const historyCall = new XMLHttpRequest();
@@ -47,7 +47,7 @@ xhr.onreadystatechange = function () {
       CORE4: ["BAVENCIO", "BESPONSA", "CRESEMBA", "ELIQUIS", "ENBREL", "ERAXIS", "IBRANCE", "INLYTA", "PRECEDEX", "SUTENE", "TYGACIL", "VFEND", "VIZIMPRO", "XALKORI", "XELJANZ", "ZYVOX"]
     };
     const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
-    const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
+    const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "darkgoldenrod", "brown", "gray"];
     let width = document.documentElement.clientWidth;
     firstGrade = function () {
       dist = token;
@@ -137,11 +137,13 @@ xhr.onreadystatechange = function () {
     checkbox.onchange = function () {
       const chart = document.getElementById("chart");
       chart.remove();
-      token.length == 8 ?
-        makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-        token.length == 5 ?
-          makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET") :
-          showRecord(token.slice(8));
+      Object.keys(productCodes).indexOf(token) != -1 ?
+        bakePizza(productData, Object.keys(data[dist]).sort(), rainbow, donutTitle) :
+        token.length == 8 ?
+          makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
+          token.length == 5 ?
+            makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET") :
+            showRecord(token.slice(8));
     }
 
     window.addEventListener("resize", function () {
@@ -567,13 +569,15 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
               productData["Quota"][terr] = terrSum[terr]["Quota"];
               productData["2023년"][terr] = terrSum[terr]["2023년"];
             }
+            tag.innerHTML = "Quota";
+            checkbox.checked = false;
+            bakePizza(productData, dataKeys, rainbow, "ALL Products");
           } else {
             for (let terr in productData) {
               productData[terr] = terrSum[terr];
             }
+            bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, "ALL Products");
           }
-          console.log(terrSum);
-          dist == "CORE2" ? bakePizza(productData, dataKeys, rainbow, "ALL Products") : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, "ALL Products");
         } else {
           for (let j = 0; j < productItems.length; j++) {
             const productItem = productItems[j];
@@ -604,7 +608,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
         allProductDiv.appendChild(productItem);
       }
 
-      const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "pink", "brown", "gray"];
+      const rainbow = ["red", "orange", "yellowgreen", "green", "skyblue", "blue", "purple", "violet", "darkgoldenrod", "brown", "gray"];
       const productItems = document.querySelectorAll(`.productItem`);
       for (let j = 0; j < productItems.length; j++) {
         const productItem = productItems[j];
@@ -716,9 +720,11 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                 const product = productSet[j];
                 for (let terr in productData["Quota"]) {
                   productData["Quota"][terr] += data[terr][product][12];
-                  productData["2023년"][terr] += recordData[terr][product]["2023년"][12];  
+                  productData["2023년"][terr] += recordData[terr][product]["2023년"][12];
                 }
               }
+              tag.innerHTML = "Quota";
+              checkbox.checked = false;
               bakePizza(productData, dataKeys, rainbow, groupUnit);
             } else {
               for (let terr in productData) {
@@ -727,7 +733,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                   const product = productSet[j];
                   data[terr][product] ? productData[terr] += data[terr][product][12] : null;
                 }
-              }  
+              }
               bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, groupUnit);
             }
             donutTitle = groupUnit;
@@ -760,15 +766,18 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           recordData[dataKeys[j]][legendSet[i]]["2023년"] ?
             productData["2023년"][dataKeys[j]] = recordData[dataKeys[j]][legendSet[i]]["2023년"][12] : productData["2023년"][dataKeys[j]] = 0;
         }
+        tag.innerHTML = "Quota";
+        checkbox.checked = false;
+        bakePizza(productData, dataKeys, rainbow, legendSet[i]);
       } else {
         for (let j = 0; j < dataKeys.length; j++) {
           data[dataKeys[j]][legendSet[i]] ?
             productData[dataKeys[j]] = data[dataKeys[j]][legendSet[i]][12] : productData[dataKeys[j]] = 0;
         }
+        const checkbox = document.querySelector(`.checkbox`);
+        checkbox.setAttribute("class", "checkbox hidden");
+        bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, legendSet[i]);
       }
-      const checkbox = document.querySelector(`.checkbox`);
-      checkbox.setAttribute("class", "checkbox hidden");
-      dist == "CORE2" ? bakePizza(productData, dataKeys, rainbow, legendSet[i]) : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, legendSet[i]);
       donutTitle = legendSet[i];
     });
   }
@@ -1478,7 +1487,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
   }
 
   const mainDough = dataDough["2023년"], crustDough = dataDough["Quota"];
-  let positionX, positionY, posiRadSet = {mainRad: [], crustRad: [], calibRad: []}, tag;
+  let positionX, positionY, posiRadSet = { mainRad: [], crustRad: [], calibRad: [] }, tag;
   for (let i = 0; i < legendSet.length; i++) {
     const item = legendSet[i], itemValue = mainDough[item] ? mainDough[item] : 0;
     const color = Array.isArray(palette) ? palette[i % palette.length] : palette[item];
@@ -1493,17 +1502,18 @@ function bakePizza(dataDough, legendSet, palette, topping) {
     } else if (share != 0) {
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       const largeArcFlag = share > 0.5 ? 1 : 0;
+      const sweepFlag = share > 0 ? 1 : 0;
       portion += 2 * Math.PI * share;
       endX = center.x + radius * Math.sin(portion), endY = center.y - radius * Math.cos(portion);
 
       path.setAttribute("fill", color), path.setAttribute("stroke", "white");
       path.setAttribute("class", `${item}`);
-      path.setAttribute("d", `M ${center.x} ${center.y} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`);
+      path.setAttribute("d", `M ${center.x} ${center.y} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${endX} ${endY} Z`);
       startX = endX, startY = endY;
       pizzaPan.appendChild(path);
     }
 
-    if (share > 0.02) {
+    if (Math.abs(share) > 0.02) {
       const innerText = (share * 100).toFixed(0) + "%";
       const percentFont = basicFont * 1.8;
       const percent = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -1597,7 +1607,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
             const largeArcFlag = crustShare > 0.5 ? 1 : 0;
             crustPortion += 2 * Math.PI * crustShare;
             crustEndX = center.x + crustRadius * Math.sin(crustPortion), crustEndY = center.y - crustRadius * Math.cos(crustPortion);
-      
+
             path.setAttribute("fill", "transparent"), path.setAttribute("stroke", color), path.setAttribute("stroke-width", basicFont / 3);
             path.setAttribute("class", `crustTail${i != j ? " dimmer" : ""}`);
             path.setAttribute("d", `M ${crustX} ${crustY} A ${crustRadius} ${crustRadius} 0 ${largeArcFlag} 1 ${crustEndX} ${crustEndY}`);
@@ -1629,7 +1639,34 @@ function bakePizza(dataDough, legendSet, palette, topping) {
           }
 
         }
+
+        const intro = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        intro.setAttribute("x", panWidth * 0.8), intro.setAttribute("width", panWidth / 25);
+        intro.setAttribute("y", panHeight * 0.85), intro.setAttribute("height", panHeight / 30);
+        intro.setAttribute("fill", color), intro.setAttribute("class", "crustTail");
+        pizzaPan.appendChild(intro);
+        const introCrust = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        introCrust.setAttribute("x1", panWidth * 0.845), introCrust.setAttribute("x2", panWidth * 0.845);
+        introCrust.setAttribute("y1", panHeight * 0.85), introCrust.setAttribute("y2", panHeight * 0.884);
+        introCrust.setAttribute("stroke", color), introCrust.setAttribute("stroke-width", basicFont / 3);
+        introCrust.setAttribute("class", "crustTail");
+        pizzaPan.appendChild(introCrust);
+        const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        introLabel.setAttribute("x", panWidth * 0.82), introLabel.setAttribute("y", panHeight * 0.867);
+        introLabel.setAttribute("font-size", basicFont), introLabel.setAttribute("text-anchor", "middle"), introLabel.setAttribute("alignment-baseline", "middle");
+        introLabel.setAttribute("fill", color == "purple" || color == "blue" || color == "green" || color == "brown" ? "white" : "black");
+        introLabel.setAttribute("class", "crustTail bold");
+        introLabel.innerHTML = "2023년";
+        pizzaPan.appendChild(introLabel);
+        const crustLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        crustLabel.setAttribute("x", panWidth * 0.847), crustLabel.setAttribute("y", panHeight * 0.867);
+        crustLabel.setAttribute("font-size", basicFont * 0.9), crustLabel.setAttribute("alignment-baseline", "middle"), crustLabel.setAttribute("fill", color);
+        crustLabel.setAttribute("class", "crustTail bold");
+        crustLabel.innerHTML = "Quota";
+        pizzaPan.appendChild(crustLabel);
+
         tag = item;
+
       } else {
         const crustAll = document.querySelectorAll('.crust');
         for (let j = 0; j < crustAll.length; j++) {
@@ -1670,7 +1707,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
         prevBanner.setAttribute("text-anchor", "start");
         const legendVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
         const volumeFont = basicFont * 2.1;
-        const volumeContent = "₩ " + itemValue.toLocaleString();
+        const volumeContent = "₩ " + (checkbox.checked ? crustValue : itemValue).toLocaleString();
         legendVolume.setAttribute("x", center.x + radius * 0.5), legendVolume.setAttribute("y", center.y - volumeFont);
         legendVolume.setAttribute("class", "legendVolume");
         legendVolume.setAttribute("font-size", volumeFont);
@@ -1699,7 +1736,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
 
   const productVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
   const volumeFont = basicFont * 2.1;
-  const volumeContent = "₩ " + contentSet["2023년"].toLocaleString();
+  const volumeContent = "₩ " + contentSet[checkbox.checked ? "Quota" : "2023년"].toLocaleString();
   productVolume.setAttribute("x", center.x + radius * 0.5), productVolume.setAttribute("y", center.y + titleFont * 17 / 12);
   productVolume.setAttribute("class", "productVolume");
   productVolume.setAttribute("font-size", volumeFont);
@@ -1712,6 +1749,30 @@ function bakePizza(dataDough, legendSet, palette, topping) {
   line.setAttribute("y1", center.y), line.setAttribute("y2", center.y), line.setAttribute("class", "dim");
   line.setAttribute("stroke", hue), line.setAttribute("stroke-width", basicFont / 2), line.setAttribute("stroke-linecap", "round");
   pizzaPan.appendChild(line);
+
+  const intro = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  intro.setAttribute("x", panWidth * 0.8), intro.setAttribute("width", panWidth / 25);
+  intro.setAttribute("y", panHeight * 0.85), intro.setAttribute("height", panHeight / 30);
+  intro.setAttribute("fill", "gray"), intro.setAttribute("class", "crust");
+  pizzaPan.appendChild(intro);
+  const introCrust = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  introCrust.setAttribute("x1", panWidth * 0.845), introCrust.setAttribute("x2", panWidth * 0.845);
+  introCrust.setAttribute("y1", panHeight * 0.85), introCrust.setAttribute("y2", panHeight * 0.884);
+  introCrust.setAttribute("stroke", "gray"), introCrust.setAttribute("stroke-width", basicFont / 3);
+  introCrust.setAttribute("class", "crust");
+  pizzaPan.appendChild(introCrust);
+  const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  introLabel.setAttribute("x", panWidth * 0.82), introLabel.setAttribute("y", panHeight * 0.867);
+  introLabel.setAttribute("font-size", basicFont), introLabel.setAttribute("text-anchor", "middle"), introLabel.setAttribute("alignment-baseline", "middle");
+  introLabel.setAttribute("class", "crust");
+  introLabel.innerHTML = "2023년";
+  pizzaPan.appendChild(introLabel);
+  const crustLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  crustLabel.setAttribute("x", panWidth * 0.847), crustLabel.setAttribute("y", panHeight * 0.867);
+  crustLabel.setAttribute("font-size", basicFont * 0.9), crustLabel.setAttribute("alignment-baseline", "middle"), crustLabel.setAttribute("fill", "gray");
+  crustLabel.setAttribute("class", "crust");
+  crustLabel.innerHTML = "Quota";
+  pizzaPan.appendChild(crustLabel);
 
   document.body.appendChild(pizzaPan);
 
