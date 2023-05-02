@@ -1667,7 +1667,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
         introLabel.setAttribute("fill", color == "purple" || color == "blue" || color == "green" || color == "brown" ? "white" : "black");
         introLabel.setAttribute("text-anchor", "middle"), introLabel.setAttribute("alignment-baseline", "middle");
         introLabel.setAttribute("class", "crustTail bold");
-        introLabel.innerHTML = checkbox.checked ? "Quota" : "2023년";
+        introLabel.innerHTML = checkbox.checked ? "Quota" : "SRA";
         pizzaPan.appendChild(introLabel);
         const crustLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
         crustLabel.setAttribute("x", center.x + 1.01 * crustYard * radius * Math.sin(introAngle + span / 2));
@@ -1801,7 +1801,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
   crustLabel.setAttribute("y", center.y - 1.01 * crustYard * radius * Math.cos(introAngle + span / 2));
   crustLabel.setAttribute("font-size", basicFont * 0.9), crustLabel.setAttribute("alignment-baseline", "middle"), crustLabel.setAttribute("fill", "#6d5dfc");
   crustLabel.setAttribute("class", "crust");
-  crustLabel.innerHTML = checkbox.checked ? "2023년" : "Quota";
+  crustLabel.innerHTML = checkbox.checked ? "2023년" : "SRA";
   pizzaPan.appendChild(crustLabel);
 
   document.body.appendChild(pizzaPan);
