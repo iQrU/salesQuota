@@ -268,3 +268,18 @@ rect {
     transform: translateY(var(--v));
   }
 }
+
+.marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(20%, -120%);
+}
+
+.line {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-left: thin solid red;
+}
