@@ -1254,17 +1254,18 @@ function showRecordLine(data, recordData, item) {
   padArea.setAttribute("fill", "transparent");
   chartArea.appendChild(padArea);
 
-  const marker = document.createElement("div"), line = document.createElement("div");
-  const offsetX = width * 0.035;
-  const offsetY = document.getElementById("subMenuDiv").getBoundingClientRect().bottom + 15;
-  marker.setAttribute("class", "marker"), line.setAttribute("class", "line");
-  line.style.height = `${height * 0.8}px`, line.style.top = `${offsetY + padArea.y.baseVal.value}px`;
-  document.body.appendChild(marker), document.body.appendChild(line);
+  const marker = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  marker.setAttribute("x", 0), marker.setAttribute("y", 0);
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", 0), line.setAttribute("x2", 0), line.setAttribute("y1", height * 0.07), line.setAttribute("y2", height * 0.87);
+  line.setAttribute("stroke", "red"), line.setAttribute("stroke-width", 0.2);
+  chartArea.appendChild(marker), chartArea.appendChild(line);
+  const offsetX = width * 0.075;
+  //const offsetY = document.getElementById("subMenuDiv").getBoundingClientRect().bottom + height * 0.07 + 15;
   padArea.addEventListener("mousemove", function (e) {
-    marker.style.display = "block", line.style.display = "block";
-    marker.style.top = `${e.clientY}px`, marker.style.left = `${e.clientX}px`;
-    line.style.left = `${e.clientX}px`;
-    marker.innerHTML = rateObj.rate[Math.floor((e.offsetX - offsetX) / interval)];
+    marker.y.baseVal[0].value = e.offsetY, marker.x.baseVal[0].value = e.offsetX;
+    marker.innerHTML = rateObj.rate[Math.round((marker.x.baseVal[0].value - offsetX) / interval)];
+    line.x1.baseVal.value = e.offsetX, line.x2.baseVal.value = e.offsetX;
   });
 
   const legendSet = Object.keys(data);
