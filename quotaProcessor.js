@@ -1020,7 +1020,7 @@ function showRecordLine(data, recordData, item) {
 
   const chartArea = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   const palette = { BAVENCIO: "#2759AF", BESPONSA: "#88CCA2", CIBINQO: "#0047BC", CRESEMBA: "#95368E", ELIQUIS: "#77014D", ENBREL: "#73CAC1", ERAXIS: "#1B92D4", IBRANCE: "#3E3092", INLYTA: "#DD007B", LORVIQUA: "#F5A400", PRECEDEX: "#3A3A59", "PREVENAR13(A)": "#00305E", "PREVENAR13(P)": "#E83A5F", SUTENE: "#C70850", TYGACIL: "#F08326", VFEND: "#006555", VIZIMPRO: "#E61587", XALKORI: "#00A6CA", XELJANZ: "#525C52", "XELJANZ 10": "#354544", ZYVOX: "#BB2429" };
-  const width = document.documentElement.clientWidth;
+  const width = document.body.clientWidth;
   const height = width / 2;
   chartArea.setAttribute("width", width), chartArea.setAttribute("height", height), chartArea.setAttribute("id", "chart");
 
@@ -1097,6 +1097,7 @@ function showRecordLine(data, recordData, item) {
   }
 
   const labelFont = basicFont * 1.2;
+  let rateObj = { "2022년": [], "2023년": [], Quota: [], rate: [] };
   if (checkbox.checked) {
     for (let i in recordData) {
       const itemLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -1104,7 +1105,7 @@ function showRecordLine(data, recordData, item) {
       let sum = 0, itemPath = "";
 
       for (let j = 0; j < (i == "2023년" ? 3 : 12); j++) {
-        sum += recordData[i][j];
+        sum += recordData[i][j], rateObj[i].push(sum);
         positionX = interval * j + axisWidth + interval / 3;
         positionY = height * 0.87 - sum / max * height * 0.8;
         itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
@@ -1171,8 +1172,10 @@ function showRecordLine(data, recordData, item) {
       let itemPath = "";
 
       for (let j = 0; j < (recordItem == "2023년" ? 3 : 12); j++) {
+        const sum = recordData[recordItem][j];
+        rateObj[recordItem].push(sum);
         positionX = interval * j + axisWidth + interval / 3;
-        positionY = height * 0.87 - recordData[recordItem][j] / max * height * 0.8;
+        positionY = height * 0.87 - sum / max * height * 0.8;
         itemPath += j == 0 ? `M${positionX} ${positionY}` : ` L ${positionX} ${positionY}`;
 
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -1239,6 +1242,30 @@ function showRecordLine(data, recordData, item) {
       chartArea.appendChild(introLabel);
     }
   }
+
+  for (let i = 0; i < 12; i++) {
+    const actual = rateObj["2023년"][i] ? rateObj["2023년"][i] : 0;
+    rateObj.rate.push(`${Math.round(actual / rateObj.Quota[i] * 100)}%`);
+  }
+
+  const padArea = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  padArea.setAttribute("x", width * 0.05), padArea.setAttribute("y", height * 0.07);
+  padArea.setAttribute("width", width * 0.9), padArea.setAttribute("height", height * 0.8);
+  padArea.setAttribute("fill", "transparent");
+  chartArea.appendChild(padArea);
+
+  const marker = document.createElement("div"), line = document.createElement("div");
+  const offsetX = width * 0.035;
+  const offsetY = document.getElementById("subMenuDiv").getBoundingClientRect().bottom + 15;
+  marker.setAttribute("class", "marker"), line.setAttribute("class", "line");
+  line.style.height = `${height * 0.8}px`, line.style.top = `${offsetY + padArea.y.baseVal.value}px`;
+  document.body.appendChild(marker), document.body.appendChild(line);
+  padArea.addEventListener("mousemove", function (e) {
+    marker.style.display = "block", line.style.display = "block";
+    marker.style.top = `${e.clientY}px`, marker.style.left = `${e.clientX}px`;
+    line.style.left = `${e.clientX}px`;
+    marker.innerHTML = rateObj.rate[Math.floor((e.offsetX - offsetX) / interval)];
+  });
 
   const legendSet = Object.keys(data);
   const legendUnit = legendSet.length > 7 ? Math.ceil(legendSet.length / 2) : legendSet.length;
@@ -1642,7 +1669,15 @@ function bakePizza(dataDough, legendSet, palette, topping) {
 
         }
 
-        const intro = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const intro = document.getElementById("intro");
+        intro.setAttribute("fill", color);
+        const introCrust = document.getElementById("introCrust");
+        introCrust.setAttribute("stroke", color);
+        const introLabel = document.getElementById("introLabel");
+        introLabel.setAttribute("fill", color == "purple" || color == "blue" || color == "green" || color == "brown" ? "white" : "black"), introLabel.setAttribute("class", "bold");
+        const crustLabel = document.getElementById("crustLabel");
+        crustLabel.setAttribute("fill", color), crustLabel.setAttribute("class", "bold");
+        /*const intro = document.createElementNS("http://www.w3.org/2000/svg", "path");
         const yardStick = 1.75, yardSpan = 0.2, introAngle = 1.05, span = 0.07;
         const p1X = center.x + (yardStick - yardSpan) * radius * Math.sin(introAngle), p1Y = center.y - (yardStick - yardSpan) * radius * Math.cos(introAngle);
         const p2X = center.x + (yardStick - yardSpan) * radius * Math.sin(introAngle + span), p2Y = center.y - (yardStick - yardSpan) * radius * Math.cos(introAngle + span);
@@ -1667,16 +1702,16 @@ function bakePizza(dataDough, legendSet, palette, topping) {
         introLabel.setAttribute("fill", color == "purple" || color == "blue" || color == "green" || color == "brown" ? "white" : "black");
         introLabel.setAttribute("text-anchor", "middle"), introLabel.setAttribute("alignment-baseline", "middle");
         introLabel.setAttribute("class", "crustTail bold");
-        introLabel.innerHTML = checkbox.checked ? "Quota" : "SRA";
+        introLabel.innerHTML = checkbox.checked ? "Quota" : "2023년";
         pizzaPan.appendChild(introLabel);
         const crustLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
         crustLabel.setAttribute("x", center.x + 1.01 * crustYard * radius * Math.sin(introAngle + span / 2));
         crustLabel.setAttribute("y", center.y - 1.01 * crustYard * radius * Math.cos(introAngle + span / 2));
         crustLabel.setAttribute("font-size", basicFont * 0.9), crustLabel.setAttribute("alignment-baseline", "middle"), crustLabel.setAttribute("fill", color);
         crustLabel.setAttribute("class", "crustTail bold");
-        crustLabel.innerHTML = checkbox.checked ? "SRA" : "Quota";
-        pizzaPan.appendChild(crustLabel);
-      
+        crustLabel.innerHTML = checkbox.checked ? "2023년" : "Quota";
+        pizzaPan.appendChild(crustLabel);*/
+
         tag = item;
 
       } else {
@@ -1704,6 +1739,16 @@ function bakePizza(dataDough, legendSet, palette, topping) {
           thisPie[j].classList.toggle('bold');
         }
         thisPie[0].classList.value == `legend ${item}` ? tag = "total" : null;
+
+        const intro = document.getElementById("intro");
+        intro.setAttribute("fill", "#6d5dfc");
+        const introCrust = document.getElementById("introCrust");
+        introCrust.setAttribute("stroke", "#6d5dfc");
+        const introLabel = document.getElementById("introLabel");
+        introLabel.setAttribute("fill", "white"), introLabel.removeAttribute("class");
+        const crustLabel = document.getElementById("crustLabel");
+        crustLabel.setAttribute("fill", "#6d5dfc"), crustLabel.removeAttribute("class");
+
       }
 
       const prevBanner = document.querySelector(`.banner`);
@@ -1777,7 +1822,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
   const p3X = center.x + yardStick * radius * Math.sin(introAngle + span), p3Y = center.y - yardStick * radius * Math.cos(introAngle + span);
   const p4X = center.x + yardStick * radius * Math.sin(introAngle), p4Y = center.y - yardStick * radius * Math.cos(introAngle);
   intro.setAttribute("fill", "#6d5dfc"), intro.setAttribute("stroke", "white");
-  intro.setAttribute("class", "crust");
+  intro.setAttribute("id", "intro");
   intro.setAttribute("d", `M ${p1X} ${p1Y} A ${radius * (yardStick - yardSpan)} ${radius * (yardStick - yardSpan)} 0 0 1 ${p2X} ${p2Y} L ${p3X} ${p3Y} A ${radius * yardStick} ${radius * yardStick} 0 0 0 ${p4X} ${p4Y} Z`);
   pizzaPan.appendChild(intro);
   const introCrust = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -1785,7 +1830,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
   const p5X = center.x + crustYard * radius * Math.sin(introAngle), p5Y = center.y - crustYard * radius * Math.cos(introAngle);
   const p6X = center.x + crustYard * radius * Math.sin(introAngle + span), p6Y = center.y - crustYard * radius * Math.cos(introAngle + span);
   introCrust.setAttribute("stroke", "#6d5dfc"), introCrust.setAttribute("stroke-width", basicFont / 3), introCrust.setAttribute("fill", "transparent");
-  introCrust.setAttribute("class", "crust");
+  introCrust.setAttribute("id", "introCrust");
   introCrust.setAttribute("d", `M ${p5X} ${p5Y} A ${radius * crustYard} ${radius * crustYard} 0 0 1 ${p6X} ${p6Y}`);
   pizzaPan.appendChild(introCrust);
   const introLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -1793,14 +1838,14 @@ function bakePizza(dataDough, legendSet, palette, topping) {
   introLabel.setAttribute("y", center.y - (yardStick - yardSpan / 2) * radius * Math.cos(introAngle + span / 2));
   introLabel.setAttribute("fill", "white"), introLabel.setAttribute("font-size", basicFont);
   introLabel.setAttribute("text-anchor", "middle"), introLabel.setAttribute("alignment-baseline", "middle");
-  introLabel.setAttribute("class", "crust");
+  introLabel.setAttribute("id", "introLabel");
   introLabel.innerHTML = checkbox.checked ? "Quota" : "SRA";
   pizzaPan.appendChild(introLabel);
   const crustLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
   crustLabel.setAttribute("x", center.x + 1.01 * crustYard * radius * Math.sin(introAngle + span / 2));
   crustLabel.setAttribute("y", center.y - 1.01 * crustYard * radius * Math.cos(introAngle + span / 2));
   crustLabel.setAttribute("font-size", basicFont * 0.9), crustLabel.setAttribute("alignment-baseline", "middle"), crustLabel.setAttribute("fill", "#6d5dfc");
-  crustLabel.setAttribute("class", "crust");
+  crustLabel.setAttribute("id", "crustLabel");
   crustLabel.innerHTML = checkbox.checked ? "SRA" : "Quota";
   pizzaPan.appendChild(crustLabel);
 
