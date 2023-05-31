@@ -1094,6 +1094,17 @@ function showRecordLine(data, recordData, item) {
     month.setAttribute("font-size", monthFont), month.setAttribute("font-style", "italic"), month.setAttribute("text-anchor", "middle");
     month.innerHTML = monthArray[i];
     chartArea.appendChild(month);
+
+    /*month.addEventListener("click", function() {
+      const marker = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const reference = rateObj["2023년"][i] / max;
+      const positionX = interval * i + axisWidth + interval / 3;
+      const positionY = reference > 0.3 ? height * 0.87 - reference * height * 0.4 : height * 0.8 - reference * height * 0.8;
+      marker.setAttribute("x", positionX), marker.setAttribute("y", positionY);
+      marker.setAttribute("font-size", basicFont * 1.1), marker.setAttribute("font-style", "italic");
+      marker.innerHTML = rateObj.rate[i];
+      chartArea.appendChild(marker);
+    });*/
   }
 
   const labelFont = basicFont * 1.2;
@@ -1258,14 +1269,16 @@ function showRecordLine(data, recordData, item) {
   marker.setAttribute("x", 0), marker.setAttribute("y", 0);
   const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
   line.setAttribute("x1", 0), line.setAttribute("x2", 0), line.setAttribute("y1", height * 0.07), line.setAttribute("y2", height * 0.87);
-  line.setAttribute("stroke", "red"), line.setAttribute("stroke-width", 0.2);
+  line.setAttribute("stroke", "red"), line.setAttribute("stroke-width", 0.3);
   chartArea.appendChild(marker), chartArea.appendChild(line);
   const offsetX = width * 0.075;
   //const offsetY = document.getElementById("subMenuDiv").getBoundingClientRect().bottom + height * 0.07 + 15;
   padArea.addEventListener("mousemove", function (e) {
+    const section = Math.round((e.offsetX - offsetX) / interval);
+    const positionX = interval * section + axisWidth + interval / 3;
     marker.y.baseVal[0].value = e.offsetY, marker.x.baseVal[0].value = e.offsetX;
-    marker.innerHTML = rateObj.rate[Math.round((marker.x.baseVal[0].value - offsetX) / interval)];
-    line.x1.baseVal.value = e.offsetX, line.x2.baseVal.value = e.offsetX;
+    marker.innerHTML = rateObj.rate[section];
+    line.x1.baseVal.value = positionX, line.x2.baseVal.value = positionX;
   });
 
   const legendSet = Object.keys(data);
