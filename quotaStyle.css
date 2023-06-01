@@ -9,6 +9,10 @@
   --greyDark: #9baacf;
 }
 
+body {
+  background: white;
+}
+
 span {
   margin: 2px 5px;
   padding: 2px 5px;
