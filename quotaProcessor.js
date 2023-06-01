@@ -1090,7 +1090,7 @@ function showRecordLine(data, recordData, item) {
   for (let i = 0; i < 12; i++) {
     medianX = interval * i + axisWidth + interval / 3;
     const month = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    month.setAttribute("x", medianX), month.setAttribute("y", height * 0.905);
+    month.setAttribute("x", medianX), month.setAttribute("y", height * 0.905), month.setAttribute("class", "month");
     month.setAttribute("font-size", monthFont), month.setAttribute("font-style", "italic"), month.setAttribute("text-anchor", "middle");
     month.innerHTML = monthArray[i];
     chartArea.appendChild(month);
@@ -1256,29 +1256,57 @@ function showRecordLine(data, recordData, item) {
 
   for (let i = 0; i < 12; i++) {
     const actual = rateObj["2023년"][i] ? rateObj["2023년"][i] : 0;
-    rateObj.rate.push(`${Math.round(actual / rateObj.Quota[i] * 100)}%`);
+    rateObj.rate.push(`${(actual / rateObj.Quota[i] * 100).toFixed(1)}%`);
   }
 
   const padArea = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   padArea.setAttribute("x", width * 0.05), padArea.setAttribute("y", height * 0.07);
-  padArea.setAttribute("width", width * 0.9), padArea.setAttribute("height", height * 0.8);
+  padArea.setAttribute("width", width * 0.9 / 4 - interval / 5), padArea.setAttribute("height", height * 0.8);
   padArea.setAttribute("fill", "transparent");
   chartArea.appendChild(padArea);
 
   const marker = document.createElementNS("http://www.w3.org/2000/svg", "text");
   marker.setAttribute("x", 0), marker.setAttribute("y", 0);
+  marker.setAttribute("font-style", "italic"), marker.setAttribute("font-size", basicFont * 1.1);
   const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
   line.setAttribute("x1", 0), line.setAttribute("x2", 0), line.setAttribute("y1", height * 0.07), line.setAttribute("y2", height * 0.87);
-  line.setAttribute("stroke", "red"), line.setAttribute("stroke-width", 0.3);
   chartArea.appendChild(marker), chartArea.appendChild(line);
   const offsetX = width * 0.075;
   //const offsetY = document.getElementById("subMenuDiv").getBoundingClientRect().bottom + height * 0.07 + 15;
+  padArea.onmouseenter = function() {
+    line.setAttribute("stroke", "red"), line.setAttribute("stroke-width", 0.3);
+  };
   padArea.addEventListener("mousemove", function (e) {
-    const section = Math.round((e.offsetX - offsetX) / interval);
-    const positionX = interval * section + axisWidth + interval / 3;
+    const ordinal = Math.round((e.offsetX - offsetX) / interval);
+    const positionX = interval * ordinal + axisWidth + interval / 3;
     marker.y.baseVal[0].value = e.offsetY, marker.x.baseVal[0].value = e.offsetX;
-    marker.innerHTML = rateObj.rate[section];
+    marker.innerHTML = rateObj.rate[ordinal];
     line.x1.baseVal.value = positionX, line.x2.baseVal.value = positionX;
+
+    const months = document.querySelectorAll('.month');
+    if (checkbox.checked) {
+      for (let i = 0; i < months.length; i++) {
+        const month = months[i];
+        if (i <= ordinal) {
+          month.setAttribute("fill", palette[item]);
+          month.setAttribute("class", "month bold");
+        } else {
+          month.setAttribute("fill", "black")
+          month.setAttribute("class", "month");
+        }
+      }
+    } else {
+      for (let i = 0; i < months.length; i++) {
+        const month = months[i];
+        if (i == ordinal) {
+          month.setAttribute("fill", palette[item]);
+          month.setAttribute("class", "month bold");
+        } else {
+          month.setAttribute("fill", "black")
+          month.setAttribute("class", "month");
+        }
+      }  
+    }
   });
 
   const legendSet = Object.keys(data);
