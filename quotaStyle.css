@@ -287,3 +287,10 @@ rect {
   left: 0;
   border-left: thin solid red;
 }
+
+.notice {
+  fill: #C1C1C1;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: bold;
+  font-style: italic;
+}

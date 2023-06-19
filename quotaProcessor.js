@@ -137,13 +137,16 @@ xhr.onreadystatechange = function () {
     checkbox.onchange = function () {
       const chart = document.getElementById("chart");
       chart.remove();
+      console.log(token, terrSum, productData);
       Object.keys(productCodes).indexOf(token) != -1 ?
         bakePizza(productData, Object.keys(data[dist]).sort(), rainbow, donutTitle) :
-        token.length == 8 ?
-          makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
-          token.length == 5 ?
-            makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET") :
-            showRecord(token.slice(8));
+        token == "emptyDonut" ?
+          postNotice(width) :
+          token.length == 8 ?
+            makeLineChart(terrData[token], Object.keys(terrData[token]), width, width * 0.5, document.body, palette, token + " PRODUCT BUDGET") :
+            token.length == 5 ?
+              makeBarChart(data[dist], teamProduct[dist], width, width * 0.5, document.body, palette, "2023 PRODUCT BUDGET") :
+              showRecord(token.slice(8));
     }
 
     window.addEventListener("resize", function () {
@@ -155,7 +158,7 @@ xhr.onreadystatechange = function () {
           bakePizza(productData, Object.keys(data[dist]).sort(), rainbow, donutTitle) :
           bakeDonut(productData, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
         token == "emptyDonut" ?
-          bakeDonut(terrSum, Object.keys(data[dist]).sort(), width, width * 0.5, document.body, rainbow, donutTitle) :
+          postNotice(width) :
           token == "coverPage" ?
             throwCoverBalls(diameterArray) :
             token.length == 8 ?
@@ -314,6 +317,19 @@ function pairProductCode(dataArray, productColumn, codeColumn) {
   return pairing;
 }
 
+function postNotice(size) {
+  const chart = document.getElementById("chart");
+  const filling = `<text x=${size / 2}, y=${size / 4}, class="notice", text-anchor="middle", alignment-baseline="middle", fill="#C1C1C1", font-size=${size * 0.03}>No Product Selected!!</text>`;
+  if (chart) {
+    chart.innerHTML = filling;
+  } else {
+    const newChart = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    newChart.setAttribute("width", size), newChart.setAttribute("height", size / 2), newChart.setAttribute("id", "chart");
+    newChart.innerHTML = filling;
+    document.body.appendChild(newChart);
+  }
+}
+
 function makeBarChart(data, legendSet, width, height, parentDiv, palette, title) {
   const dataKeys = Object.keys(data).sort();
   const dist = dataKeys[0].substring(0, 5);
@@ -333,7 +349,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
   chartArea.appendChild(banner);
 
   let max = 0;
-  terrSum = {}
+  dist == "CORE2" ? terrSum = { "2023년": {}, Quota: {} } : terrSum = {};
   for (let i in data) {
     let subtotal = 0;
     for (let j in data[i]) {
@@ -343,13 +359,13 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
     max = subtotal > max ? subtotal : max;
 
     if (dist == "CORE2") {
-      terrSum[i] = {}, terrSum[i]["Quota"] = 0, terrSum[i]["2023년"] = 0;
+      //terrSum[i]["Quota"] = 0, terrSum[i]["2023년"] = 0;
       let terrTotal = 0;
       for (let j in recordData[i]) {
         const item = recordData[i][j]["2023년"];
         terrTotal += item[item.length - 1];
       }
-      terrSum[i]["Quota"] = subtotal, terrSum[i]["2023년"] = terrTotal;
+      terrSum["Quota"][i] = subtotal, terrSum["2023년"][i] = terrTotal;
     } else {
       terrSum[i] = subtotal;
     }
@@ -566,11 +582,11 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           donutTitle = "ALL Products";
           if (dist == "CORE2") {
             for (let terr in productData["Quota"]) {
-              productData["Quota"][terr] = terrSum[terr]["Quota"];
-              productData["2023년"][terr] = terrSum[terr]["2023년"];
+              productData["Quota"][terr] = terrSum["Quota"][terr];
+              productData["2023년"][terr] = terrSum["2023년"][terr];
             }
-            tag.innerHTML = "Quota";
-            checkbox.checked = false;
+            //tag.innerHTML = "Quota";
+            //checkbox.checked = false;
             bakePizza(productData, dataKeys, rainbow, "ALL Products");
           } else {
             for (let terr in productData) {
@@ -595,6 +611,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
             }
           }
           token = "emptyDonut";
+          postNotice(trayWidth);
         }
       };
       allProductDiv.appendChild(allPushBtn);
@@ -667,10 +684,13 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                   productSet.length == 2 ?
                     title = `${productCodes[productSet[0]]} & ${productCodes[productSet[1]]}` : title = "SEVERAL";
           donutTitle = title;
-          productSet.length != 0 ?
+          if (productSet.length != 0) {
             dist == "CORE2" ?
-              bakePizza(productData, dataKeys, rainbow, title) : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, title)
-            : null;
+              bakePizza(productData, dataKeys, rainbow, title) : bakeDonut(productData, dataKeys, trayWidth, trayWidth / 2, document.body, rainbow, title);
+          } else {
+            token = "emptyDonut";
+            postNotice(trayWidth);
+          }
         };
       }
 
@@ -723,8 +743,8 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
                   productData["2023년"][terr] += recordData[terr][product]["2023년"][12];
                 }
               }
-              tag.innerHTML = "Quota";
-              checkbox.checked = false;
+              //tag.innerHTML = "Quota";
+              //checkbox.checked = false;
               bakePizza(productData, dataKeys, rainbow, groupUnit);
             } else {
               for (let terr in productData) {
@@ -754,6 +774,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
               }
             }
             token = "emptyDonut";
+            postNotice(trayWidth);
           }
         };
       }
@@ -1273,7 +1294,7 @@ function showRecordLine(data, recordData, item) {
   chartArea.appendChild(marker), chartArea.appendChild(line);
   const offsetX = width * 0.075;
   //const offsetY = document.getElementById("subMenuDiv").getBoundingClientRect().bottom + height * 0.07 + 15;
-  padArea.onmouseenter = function() {
+  padArea.onmouseenter = function () {
     line.setAttribute("stroke", "red"), line.setAttribute("stroke-width", 0.3);
   };
   padArea.addEventListener("mousemove", function (e) {
@@ -1305,7 +1326,7 @@ function showRecordLine(data, recordData, item) {
           month.setAttribute("fill", "black")
           month.setAttribute("class", "month");
         }
-      }  
+      }
     }
   });
 
@@ -1806,7 +1827,7 @@ function bakePizza(dataDough, legendSet, palette, topping) {
         prevBanner.setAttribute("text-anchor", "start");
         const legendVolume = document.createElementNS("http://www.w3.org/2000/svg", "text");
         const volumeFont = basicFont * 2.1;
-        const volumeContent = "₩ " + (checkbox.checked ? crustValue : itemValue).toLocaleString();
+        const volumeContent = "₩ " + itemValue.toLocaleString();
         legendVolume.setAttribute("x", center.x + radius * 0.5), legendVolume.setAttribute("y", center.y - volumeFont);
         legendVolume.setAttribute("class", "legendVolume");
         legendVolume.setAttribute("font-size", volumeFont);
