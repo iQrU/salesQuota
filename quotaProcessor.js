@@ -138,7 +138,7 @@ xhr.onreadystatechange = function () {
       const chart = document.getElementById("chart");
       chart.remove();
       console.log(token, terrSum, productData);
-      Object.keys(productCodes).indexOf(token) != -1 ?
+      Object.keys(productCodes).indexOf(token) != -1 || token == "bundle" ?
         bakePizza(productData, Object.keys(data[dist]).sort(), rainbow, donutTitle) :
         token == "emptyDonut" ?
           postNotice(width) :
@@ -580,6 +580,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
           const chart = document.getElementById("chart");
           chart ? chart.remove() : null;
           donutTitle = "ALL Products";
+          token = "bundle";
           if (dist == "CORE2") {
             for (let terr in productData["Quota"]) {
               productData["Quota"][terr] = terrSum["Quota"][terr];
@@ -757,6 +758,7 @@ function makeBarChart(data, legendSet, width, height, parentDiv, palette, title)
               bakeDonut(productData, dataKeys, trayWidth, trayWidth * 0.5, document.body, rainbow, groupUnit);
             }
             donutTitle = groupUnit;
+            token = "bundle";
           } else {
             for (let j = 0; j < productItems.length; j++) {
               const productItem = productItems[j];
